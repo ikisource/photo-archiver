@@ -1,0 +1,64 @@
+//import org.apache.tools.ant.filters.ReplaceTokens
+buildscript {
+    repositories {
+    	mavenCentral()
+    	jcenter()
+    	maven {
+      		url 'https://sandec.bintray.com/repo'
+    	}
+    }
+    dependencies {
+		classpath 'org.openjfx:javafx-plugin:0.0.8'
+    }
+}
+
+plugins {
+	id 'application' // uses also plugin 'java'
+    id 'eclipse'
+    id 'org.openjfx.javafxplugin' version '0.0.8'
+}
+
+group 'fr.omathe.photoarchiver'
+project.version '0.1'
+
+repositories {
+    mavenCentral()
+	jcenter()
+}
+
+javafx {
+	version = '15'
+    modules = [ 'javafx.fxml', 'javafx.web']
+}
+
+dependencies {
+    
+    compile 'com.drewnoakes:metadata-extractor:2.8.1'
+    compile 'log4j:log4j:1.2.17'
+    compile 'no.tornado:fxlauncher:1.0.8'
+	compile 'org.controlsfx:controlsfx:11.0.2'
+    testCompile group: 'org.junit.jupiter', name: 'junit-jupiter-engine', version: '5.7.0'
+    testRuntime('org.junit.jupiter:junit-jupiter-engine:5.7.0')
+    testImplementation('org.junit.jupiter:junit-jupiter:5.7.0') {
+		exclude group: 'org.junit.platform' // otherwise bug with junit eclipse launcher
+  	}
+}
+
+eclipse {
+	classpath {
+		downloadSources=true
+		containers 'org.eclipse.jdt.launching.JRE_CONTAINER'
+		file {
+			whenMerged {
+				entries.removeAll { it.kind == 'con' && it.path == 'org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-15/' }
+				entries.findAll { it.properties.kind.equals('lib') }.each {
+                    it.entryAttributes['module'] = 'true'
+                }
+			}
+		}
+	}
+}
+
+test {
+    useJUnitPlatform()
+}
