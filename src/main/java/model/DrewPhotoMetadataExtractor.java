@@ -17,7 +17,6 @@ import com.drew.metadata.Tag;
 import com.drew.metadata.exif.ExifSubIFDDirectory;
 
 /**
- *
  * @author olivier
  */
 public class DrewPhotoMetadataExtractor implements PhotoMetadataExtractor {
