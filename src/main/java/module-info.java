@@ -5,7 +5,7 @@ module fr.omathe.photoarchiver {
 	
 	// automatic modules
 	requires javafx.base;
-	requires javafx.graphics;
+	requires transitive javafx.graphics;
 	requires javafx.controls;
 	requires org.controlsfx.controls;
 	requires metadata.extractor;
