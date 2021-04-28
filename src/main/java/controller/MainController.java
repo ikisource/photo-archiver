@@ -8,9 +8,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -30,19 +28,22 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
-import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
-import javafx.scene.control.ButtonType;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.Label;
 import javafx.scene.control.SelectionMode;
+import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.CheckBoxTableCell;
+import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.DirectoryChooser;
+import javafx.util.Callback;
 import model.Destination;
 import model.DrewPhotoMetadataExtractor;
 import model.Photo;
@@ -59,7 +60,7 @@ import service.CopyThumbService;
 public class MainController implements Initializable {
 
 	@FXML
-	private ComboBox sourceDirectory;
+	private ComboBox<String> sourceDirectory;
 
 	@FXML
 	private TableView<Photo> photos;
@@ -71,7 +72,13 @@ public class MainController implements Initializable {
 	private AnchorPane leftPane;
 
 	@FXML
-	private TableColumn photoEnabledColumn;
+	private TableColumn<Photo, Boolean> photoEnabledColumn;
+
+	@FXML
+	private TableColumn<Photo, String> photoNameColumn;
+
+	@FXML
+	private TableColumn<Photo, String> photoDateColumn;
 
 	@FXML
 	private TableColumn destinationEnabledColumn;
@@ -96,6 +103,12 @@ public class MainController implements Initializable {
 
 	@FXML
 	private Button cancelCopy;
+
+	@FXML
+	private Label photoCounter;
+
+	@FXML
+	private CheckBox recursiveAnalyse;
 
 	//    private CopyThumbService copyThumbService;
 	//    private CopyJpgService copyJpgService;
@@ -127,7 +140,19 @@ public class MainController implements Initializable {
 		// photos
 		photos.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
 		photos.setItems(data);
+
 		photoEnabledColumn.setCellFactory(object -> new CheckBoxTableCell());
+
+		// date
+		Callback<TableColumn<Photo, String>, TableCell<Photo, String>> photoDateCellFactory = new Callback<TableColumn<Photo, String>, TableCell<Photo, String>>() {
+
+			@Override
+			public TableCell<Photo, String> call(TableColumn<Photo, String> p) {
+				return new PhotoDateCellFactory();
+			}
+		};
+		photoDateColumn.setCellValueFactory(new PropertyValueFactory<Photo, String>("date"));
+		photoDateColumn.setCellFactory(photoDateCellFactory);
 
 		// destinations
 		destinations.setItems(destinationsData);
@@ -313,57 +338,16 @@ public class MainController implements Initializable {
 	}
 
 	@FXML
-	protected void formatName(ActionEvent event) {
-
-		photos.getSelectionModel().getSelectedItems().stream().forEach(Photo::formatName);
-
-	}
-
-	@FXML
-	protected void removePhoto(ActionEvent event) {
-
-		List<Photo> elements = photos.getSelectionModel().getSelectedItems();
-		long count = elements.size();
-
-		if (count > 0) {
-			Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-			alert.setTitle(count > 1 ? "Retirer des photos" : "Retirer une photo");
-			alert.setHeaderText(count > 1 ? count + " photos sélectionnées" : count + " photo sélectionnée");
-
-			alert.setContentText("Confirmer le retrait ?");
-			Optional<ButtonType> result = alert.showAndWait();
-			if (result.get() == ButtonType.OK) {
-				data.removeAll(elements);
-			}
-		}
-
-		//        long count = data.stream().filter(Photo::getEnabled).count();
-		//        if (count > 0) {
-		//            Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-		//            alert.setTitle(count > 1 ? "Supprimer des photos" : "Supprimer une photo");
-		//            alert.setHeaderText(count > 1 ? count + " photos cochées" : count + " photo cochée");
-		//            
-		//            alert.setContentText("Confirmer la suppression ?");
-		//            Optional<ButtonType> result = alert.showAndWait();
-		//            if (result.get() == ButtonType.OK) {
-		//                System.out.println("controller.MainController.deletePhoto()");
-		//            }
-		//        }
-	}
-
-	@FXML
 	protected void selectAllPhotos(ActionEvent event) {
 
-		photos.getSelectionModel().selectAll();
+		data.stream().forEach(photo -> photo.setEnabled(true));
 	}
-	
+
 	@FXML
 	protected void deselectAllPhotos(ActionEvent event) {
-		
-		photos.getSelectionModel().clearSelection();
+
+		data.stream().forEach(photo -> photo.setEnabled(false));
 	}
-	
-	
 
 	@FXML
 	public void browse(ActionEvent event) {
@@ -380,10 +364,17 @@ public class MainController implements Initializable {
 	protected void analyse(ActionEvent event) {
 
 		File directory = new File(sourceDirectory.getValue().toString());
+
 		data.clear();
 		Stream<Path> files = null;
 		try {
-			files = Files.list(Paths.get(directory.toURI()));
+
+			if (recursiveAnalyse.isSelected()) {
+				files = Files.walk(Paths.get(directory.toURI()))
+						.filter(Files::isRegularFile);
+			} else {
+				files = Files.list(Paths.get(directory.toURI()));
+			}
 			files.forEach(
 					path -> {
 						if (path.toFile().isFile()) {
@@ -391,6 +382,7 @@ public class MainController implements Initializable {
 							PhotoMetadata metadata = metadataExtractor.extract(path);
 							//System.out.println(metadata);
 							Photo photo = new Photo(true, path.getFileName().toString(), path, metadata);
+							photo.formatName();
 							data.add(photo);
 						}
 						//System.out.println(photo);
@@ -398,12 +390,73 @@ public class MainController implements Initializable {
 
 		} catch (IOException ex) {
 			Logger.getLogger(MainController.class.getName()).log(Level.SEVERE, null, ex);
-		}
-		finally {
+		} finally {
 			if (files != null) {
 				files.close();
+				displayPhotoCounter();
 			}
 		}
-		directory.list();
+		//directory.list();
+	}
+
+	//	@FXML
+	//	protected void analyse(ActionEvent event) {
+	//		
+	//		File directory = new File(sourceDirectory.getValue().toString());
+	//		data.clear();
+	//		Stream<Path> files = null;
+	//		try {
+	//			files = Files.list(Paths.get(directory.toURI()));
+	//			files.forEach(
+	//					path -> {
+	//						if (path.toFile().isFile()) {
+	//							//System.out.println(path);
+	//							PhotoMetadata metadata = metadataExtractor.extract(path);
+	//							//System.out.println(metadata);
+	//							Photo photo = new Photo(true, path.getFileName().toString(), path, metadata);
+	//							photo.formatName();
+	//							data.add(photo);
+	//						}
+	//						//System.out.println(photo);
+	//					});
+	//			
+	//		} catch (IOException ex) {
+	//			Logger.getLogger(MainController.class.getName()).log(Level.SEVERE, null, ex);
+	//		}
+	//		finally {
+	//			if (files != null) {
+	//				files.close();
+	//				displayPhotoCounter();
+	//			}
+	//		}
+	//		//directory.list();
+	//	}
+
+	@FXML
+	void clearPhotos(ActionEvent event) {
+		data.clear();
+		displayPhotoCounter();
+	}
+
+	private void displayPhotoCounter() {
+
+		String text = "";
+		if (data.isEmpty()) {
+			photoCounter.setText("");
+		} else if (data.size() == 1) {
+			text = data.size() + " photo analysée";
+		} else {
+			text = data.size() + " photos analysées";
+		}
+		// photos with no date
+		long noDateCounter = data.stream().filter(photo -> photo.getDate() == null).count();
+		if (noDateCounter > 0) {
+			if (noDateCounter == 1) {
+				text += ", " + noDateCounter + " photo sans date";
+			} else {
+				text += ", " + noDateCounter + " photos sans date";
+			}
+		}
+		photoCounter.setText(text);
 	}
 }

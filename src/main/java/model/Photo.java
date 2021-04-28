@@ -4,6 +4,7 @@ import java.io.File;
 import java.nio.file.Path;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
+
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleStringProperty;
@@ -32,7 +33,12 @@ public class Photo {
         this.originName = new SimpleStringProperty(path.getFileName().toString());
         this.path = path;
         this.metadata = metadata;
-        this.date = new SimpleStringProperty(new SimpleDateFormat(DATE_FORMAT).format(metadata.getDate()));
+        if (metadata.getDate() == null) {
+        	this.date = new SimpleStringProperty();
+        	setEnabled(false);
+        } else {
+        	this.date = new SimpleStringProperty(new SimpleDateFormat(DATE_FORMAT).format(metadata.getDate()));
+        }
         this.camera = new SimpleStringProperty(metadata.getCamera());
     }
 
@@ -95,9 +101,12 @@ public class Photo {
     }
 
     public void formatName() {
-        String[] split = path.getFileName().toString().split("\\.");
-        String extension = split[1].toLowerCase();
-        this.name.set(date.get().replaceAll(":", "-").replace(" ", "_") + "," + metadata.getSubSeconds() + "." + extension);
+    	
+    	if (date.get() != null && metadata.getSubSeconds() != null) {
+    		String[] split = path.getFileName().toString().split("\\.");
+    		String extension = split[1].toLowerCase();
+    		this.name.set(date.get().replaceAll(":", "-").replace(" ", "_") + "," + metadata.getSubSeconds() + "." + extension);
+    	}
     }
 
     public String buildDirectoryName() {

@@ -31,6 +31,7 @@
       															</HBox.margin>
       														</ComboBox>
                               <Button mnemonicParsing="false" onAction="#browse" text="Parcourir" />
+      														<CheckBox fx:id="recursiveAnalyse" mnemonicParsing="false" selected="true" text="Inclure sous-répertoires" />
       													</children>
                            <VBox.margin>
                               <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
@@ -39,7 +40,7 @@
       												<HBox alignment="CENTER_LEFT" fillHeight="false" spacing="5.0" VBox.vgrow="NEVER">
       													<children>
                               <Button mnemonicParsing="false" onAction="#analyse" text="Analyser" />
-      														<CheckBox mnemonicParsing="false" text="Récursif" />
+                              <Label fx:id="photoCounter" />
       													</children>
                            <padding>
                               <Insets bottom="5.0" />
@@ -50,7 +51,7 @@
       												</HBox>
       												<TableView fx:id="photos" editable="true" prefHeight="432.0" prefWidth="786.0" VBox.vgrow="SOMETIMES">
       													<columns>
-      														<TableColumn fx:id="photoEnabledColumn" prefWidth="75.0" text="Enabled">
+      														<TableColumn fx:id="photoEnabledColumn" prefWidth="75.0" text="Activé">
       															<cellValueFactory>
       																<PropertyValueFactory property="enabled" />
       															</cellValueFactory>
@@ -60,7 +61,7 @@
       																<PropertyValueFactory property="originName" />
       															</cellValueFactory>
       														</TableColumn>
-      														<TableColumn prefWidth="230.0" text="Name">
+      														<TableColumn fx:id="photoNameColumn" prefWidth="230.0" text="Nom">
       															<cellValueFactory>
       																<PropertyValueFactory property="name" />
       															</cellValueFactory>
@@ -68,7 +69,7 @@
       																<TextFieldTableCell fx:factory="forTableColumn" />
       															</cellFactory>
       														</TableColumn>
-      														<TableColumn prefWidth="150.0" text="Date">
+      														<TableColumn fx:id="photoDateColumn" prefWidth="150.0" text="Date">
       															<cellValueFactory>
       																<PropertyValueFactory property="date" />
       															</cellValueFactory>
@@ -87,8 +88,7 @@
       													<children>
       														<Button mnemonicParsing="false" onAction="#selectAllPhotos" text="Tout sélectionner" />
                               <Button mnemonicParsing="false" onAction="#deselectAllPhotos" text="Tout désélectionner" />
-      														<Button mnemonicParsing="false" onAction="#formatName" text="Renommer" />
-      														<Button mnemonicParsing="false" onAction="#removePhoto" text="Retirer" />
+                              <Button mnemonicParsing="false" onAction="#clearPhotos" text="Effacer" />
       													</children>
       													<padding>
       														<Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
@@ -118,12 +118,12 @@
 								</HBox>
 								<TableView fx:id="destinations" editable="true" onMouseClicked="#selectDestination" VBox.vgrow="SOMETIMES">
 									<columns>
-										<TableColumn fx:id="destinationEnabledColumn" prefWidth="75.0" text="Enabled">
+										<TableColumn fx:id="destinationEnabledColumn" prefWidth="75.0" text="Activé">
 											<cellValueFactory>
 												<PropertyValueFactory property="enabled" />
 											</cellValueFactory>
 										</TableColumn>
-										<TableColumn fx:id="destinationNameColumn" prefWidth="75.0" text="Name">
+										<TableColumn fx:id="destinationNameColumn" prefWidth="75.0" text="Nom">
 											<cellFactory>
 												<TextFieldTableCell fx:factory="forTableColumn" />
 											</cellFactory>
@@ -139,17 +139,17 @@
 												<PropertyValueFactory property="path" />
 											</cellValueFactory>
 										</TableColumn>
-										<TableColumn fx:id="destinationRawColumn" prefWidth="75.0" text="Raw">
+										<TableColumn fx:id="destinationRawColumn" prefWidth="75.0" text="RAW">
 											<cellValueFactory>
 												<PropertyValueFactory property="raw" />
 											</cellValueFactory>
 										</TableColumn>
-										<TableColumn fx:id="destinationJpgColumn" prefWidth="75.0" text="Jpg">
+										<TableColumn fx:id="destinationJpgColumn" prefWidth="75.0" text="JPG">
 											<cellValueFactory>
 												<PropertyValueFactory property="jpg" />
 											</cellValueFactory>
 										</TableColumn>
-										<TableColumn fx:id="destinationThumbColumn" prefWidth="75.0" text="Thumb">
+										<TableColumn fx:id="destinationThumbColumn" prefWidth="128.0" text="Vignette JPG">
 											<cellValueFactory>
 												<PropertyValueFactory property="thumb" />
 											</cellValueFactory>
@@ -198,6 +198,9 @@
 					</children>
 				</AnchorPane>
 			</items>
+         <BorderPane.margin>
+            <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+         </BorderPane.margin>
 		</SplitPane>
    </center>
 </BorderPane>
