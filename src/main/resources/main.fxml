@@ -8,6 +8,7 @@
 <?import javafx.scene.control.SplitPane?>
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
 <?import javafx.scene.control.cell.PropertyValueFactory?>
 <?import javafx.scene.control.cell.TextFieldTableCell?>
 <?import javafx.scene.layout.AnchorPane?>
@@ -31,7 +32,6 @@
       															</HBox.margin>
       														</ComboBox>
                               <Button mnemonicParsing="false" onAction="#browse" text="Parcourir" />
-      														<CheckBox fx:id="recursiveAnalyse" mnemonicParsing="false" selected="true" text="Inclure sous-répertoires" />
       													</children>
                            <VBox.margin>
                               <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
@@ -39,8 +39,29 @@
       												</HBox>
       												<HBox alignment="CENTER_LEFT" fillHeight="false" spacing="5.0" VBox.vgrow="NEVER">
       													<children>
-                              <Button mnemonicParsing="false" onAction="#analyse" text="Analyser" />
-                              <Label fx:id="photoCounter" />
+                              <VBox>
+                                 <children>
+                                    <HBox alignment="CENTER_LEFT" spacing="5.0">
+                                       <children>
+                                          <Label text="Filtres" />
+                                          <TextField fx:id="filters" text="CR2, JPG" />
+                  														<CheckBox fx:id="recursiveAnalyse" mnemonicParsing="false" selected="true" text="Inclure sous-répertoires" />
+                                       </children>
+                                       <VBox.margin>
+                                          <Insets bottom="5.0" right="5.0" top="5.0" />
+                                       </VBox.margin>
+                                    </HBox>
+                                    <HBox alignment="CENTER_LEFT" spacing="5.0">
+                                       <children>
+                                          <Button mnemonicParsing="false" onAction="#analyse" text="Analyser" />
+                                          <Label fx:id="photoCounter" />
+                                       </children>
+                                       <VBox.margin>
+                                          <Insets bottom="5.0" right="5.0" top="5.0" />
+                                       </VBox.margin>
+                                    </HBox>
+                                 </children>
+                              </VBox>
       													</children>
                            <padding>
                               <Insets bottom="5.0" />
@@ -49,19 +70,19 @@
                               <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
                            </VBox.margin>
       												</HBox>
-      												<TableView fx:id="photos" editable="true" prefHeight="432.0" prefWidth="786.0" VBox.vgrow="SOMETIMES">
+      												<TableView fx:id="photos" editable="true" prefHeight="771.0" prefWidth="827.0" VBox.vgrow="SOMETIMES">
       													<columns>
-      														<TableColumn fx:id="photoEnabledColumn" prefWidth="75.0" text="Activé">
+      														<TableColumn fx:id="photoEnabledColumn" prefWidth="56.0" text="Activé">
       															<cellValueFactory>
       																<PropertyValueFactory property="enabled" />
       															</cellValueFactory>
       														</TableColumn>
-      														<TableColumn prefWidth="230.0" text="Fichier">
+      														<TableColumn prefWidth="208.0" text="Fichier">
       															<cellValueFactory>
       																<PropertyValueFactory property="originName" />
       															</cellValueFactory>
       														</TableColumn>
-      														<TableColumn fx:id="photoNameColumn" prefWidth="230.0" text="Nom">
+      														<TableColumn fx:id="photoNameColumn" prefWidth="209.0" text="Nom">
       															<cellValueFactory>
       																<PropertyValueFactory property="name" />
       															</cellValueFactory>
@@ -69,12 +90,12 @@
       																<TextFieldTableCell fx:factory="forTableColumn" />
       															</cellFactory>
       														</TableColumn>
-      														<TableColumn fx:id="photoDateColumn" prefWidth="150.0" text="Date">
+      														<TableColumn fx:id="photoDateColumn" prefWidth="165.0" text="Date">
       															<cellValueFactory>
       																<PropertyValueFactory property="date" />
       															</cellValueFactory>
       														</TableColumn>
-      														<TableColumn prefWidth="75.0" text="Appareil">
+      														<TableColumn prefWidth="122.0" text="Appareil">
       															<cellValueFactory>
       																<PropertyValueFactory property="camera" />
       															</cellValueFactory>
@@ -116,14 +137,14 @@
 										<Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
 									</VBox.margin>
 								</HBox>
-								<TableView fx:id="destinations" editable="true" onMouseClicked="#selectDestination" VBox.vgrow="SOMETIMES">
+								<TableView fx:id="destinations" editable="true" maxHeight="-Infinity" onMouseClicked="#selectDestination" prefHeight="300.0" prefWidth="728.0" VBox.vgrow="SOMETIMES">
 									<columns>
-										<TableColumn fx:id="destinationEnabledColumn" prefWidth="75.0" text="Activé">
+										<TableColumn fx:id="destinationEnabledColumn" prefWidth="54.0" text="Activé">
 											<cellValueFactory>
 												<PropertyValueFactory property="enabled" />
 											</cellValueFactory>
 										</TableColumn>
-										<TableColumn fx:id="destinationNameColumn" prefWidth="75.0" text="Nom">
+										<TableColumn fx:id="destinationNameColumn" prefWidth="96.0" text="Nom">
 											<cellFactory>
 												<TextFieldTableCell fx:factory="forTableColumn" />
 											</cellFactory>
@@ -131,7 +152,7 @@
 												<PropertyValueFactory property="name" />
 											</cellValueFactory>
 										</TableColumn>
-										<TableColumn fx:id="destinationPathColumn" prefWidth="200.0" text="Uri">
+										<TableColumn fx:id="destinationPathColumn" prefWidth="200.0" text="Chemin">
 											<cellFactory>
 												<TextFieldTableCell fx:factory="forTableColumn" />
 											</cellFactory>
@@ -139,21 +160,22 @@
 												<PropertyValueFactory property="path" />
 											</cellValueFactory>
 										</TableColumn>
-										<TableColumn fx:id="destinationRawColumn" prefWidth="75.0" text="RAW">
+										<TableColumn fx:id="destinationRawColumn" prefWidth="45.0" text="RAW">
 											<cellValueFactory>
 												<PropertyValueFactory property="raw" />
 											</cellValueFactory>
 										</TableColumn>
-										<TableColumn fx:id="destinationJpgColumn" prefWidth="75.0" text="JPG">
+										<TableColumn fx:id="destinationJpgColumn" prefWidth="48.0" text="JPG">
 											<cellValueFactory>
 												<PropertyValueFactory property="jpg" />
 											</cellValueFactory>
 										</TableColumn>
-										<TableColumn fx:id="destinationThumbColumn" prefWidth="128.0" text="Vignette JPG">
+										<TableColumn fx:id="destinationThumbColumn" prefWidth="103.0" text="Vignette JPG">
 											<cellValueFactory>
 												<PropertyValueFactory property="thumb" />
 											</cellValueFactory>
 										</TableColumn>
+                              <TableColumn fx:id="destinationActionColumn" prefWidth="143.0" text="Action" />
 									</columns>
 									<VBox.margin>
 										<Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />

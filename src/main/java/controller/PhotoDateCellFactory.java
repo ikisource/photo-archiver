@@ -53,7 +53,6 @@ public class PhotoDateCellFactory extends TableCell<Photo, String> {
 			setStyle("-fx-background-color: red;");
 		} else {
 			if (item != null) {
-				System.out.println("empty = " + empty);
 				setContentDisplay(ContentDisplay.TEXT_ONLY);
 				setText(item);
 				setStyle("-fx-background-color: lightgreen;");

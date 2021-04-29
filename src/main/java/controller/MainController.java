@@ -6,12 +6,16 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import com.drew.imaging.ImageMetadataReader;
@@ -36,6 +40,7 @@ import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import javafx.scene.control.TextField;
 import javafx.scene.control.cell.CheckBoxTableCell;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.input.MouseEvent;
@@ -96,6 +101,12 @@ public class MainController implements Initializable {
 	private TableColumn destinationThumbColumn;
 
 	@FXML
+	private TableColumn<Destination, String> destinationPathColumn;
+	
+	@FXML
+    private TableColumn<Destination, Void> destinationActionColumn;
+
+	@FXML
 	private VBox copyBox;
 
 	@FXML
@@ -109,6 +120,9 @@ public class MainController implements Initializable {
 
 	@FXML
 	private CheckBox recursiveAnalyse;
+
+	@FXML
+	private TextField filters;
 
 	//    private CopyThumbService copyThumbService;
 	//    private CopyJpgService copyJpgService;
@@ -135,7 +149,7 @@ public class MainController implements Initializable {
 	public void initialize(URL location, final ResourceBundle resources) {
 
 		sourceDirectory.setValue("/home/olivier/Téléchargements/test");
-		destinationsData.add(new Destination(Boolean.TRUE, "USB Key", new File("/home/olivier/dest").toPath(), Boolean.TRUE, Boolean.TRUE, Boolean.TRUE));
+		destinationsData.add(new Destination(Boolean.TRUE, "USB Key", new File("/home/olivier/Téléchargements/olivier").toPath(), Boolean.TRUE, Boolean.TRUE, Boolean.TRUE));
 
 		// photos
 		photos.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
@@ -160,6 +174,17 @@ public class MainController implements Initializable {
 		destinationJpgColumn.setCellFactory(object -> new CheckBoxTableCell());
 		destinationThumbColumn.setCellFactory(object -> new CheckBoxTableCell());
 		destinationEnabledColumn.setCellFactory(object -> new CheckBoxTableCell());
+
+		// path
+		Callback<TableColumn<Destination, Void>, TableCell<Destination, Void>> destinationActionCellFactory = new Callback<TableColumn<Destination, Void>, TableCell<Destination, Void>>() {
+
+			@Override
+			public TableCell<Destination, Void> call(TableColumn<Destination, Void> p) {
+				return new DestinationActionCellFactory();
+			}
+		};
+		//destinationActionColumn.setCellValueFactory(new PropertyValueFactory<?, ?>("path"));
+		destinationActionColumn.setCellFactory(destinationActionCellFactory);
 
 		// bindings
 		this.metadataExtractor = new DrewPhotoMetadataExtractor();
@@ -363,82 +388,68 @@ public class MainController implements Initializable {
 	@FXML
 	protected void analyse(ActionEvent event) {
 
+		getFilters();
+
 		File directory = new File(sourceDirectory.getValue().toString());
 
 		data.clear();
+		List<Path> invalidPhotos = new ArrayList<>();
 		Stream<Path> files = null;
-		try {
 
+		try {
 			if (recursiveAnalyse.isSelected()) {
 				files = Files.walk(Paths.get(directory.toURI()))
 						.filter(Files::isRegularFile);
 			} else {
 				files = Files.list(Paths.get(directory.toURI()));
 			}
-			files.forEach(
-					path -> {
-						if (path.toFile().isFile()) {
-							//System.out.println(path);
-							PhotoMetadata metadata = metadataExtractor.extract(path);
-							//System.out.println(metadata);
+			List<String> extensions = getFilters();
+
+			files.filter(p -> p.toFile().isFile())
+					.filter(p -> p.toString().contains("."))
+					.filter(p -> extensions.contains(p.toString().toLowerCase().substring(p.toString().lastIndexOf(".") + 1).toLowerCase())) // filter on extension
+					.forEach(path -> {
+						PhotoMetadata metadata = metadataExtractor.extract(path);
+						if (metadata.getValid()) {
 							Photo photo = new Photo(true, path.getFileName().toString(), path, metadata);
 							photo.formatName();
 							data.add(photo);
+						} else {
+							invalidPhotos.add(path);
 						}
-						//System.out.println(photo);
 					});
-
 		} catch (IOException ex) {
 			Logger.getLogger(MainController.class.getName()).log(Level.SEVERE, null, ex);
 		} finally {
 			if (files != null) {
 				files.close();
-				displayPhotoCounter();
+				displayPhotoCounter(invalidPhotos);
 			}
 		}
-		//directory.list();
 	}
 
-	//	@FXML
-	//	protected void analyse(ActionEvent event) {
-	//		
-	//		File directory = new File(sourceDirectory.getValue().toString());
-	//		data.clear();
-	//		Stream<Path> files = null;
-	//		try {
-	//			files = Files.list(Paths.get(directory.toURI()));
-	//			files.forEach(
-	//					path -> {
-	//						if (path.toFile().isFile()) {
-	//							//System.out.println(path);
-	//							PhotoMetadata metadata = metadataExtractor.extract(path);
-	//							//System.out.println(metadata);
-	//							Photo photo = new Photo(true, path.getFileName().toString(), path, metadata);
-	//							photo.formatName();
-	//							data.add(photo);
-	//						}
-	//						//System.out.println(photo);
-	//					});
-	//			
-	//		} catch (IOException ex) {
-	//			Logger.getLogger(MainController.class.getName()).log(Level.SEVERE, null, ex);
-	//		}
-	//		finally {
-	//			if (files != null) {
-	//				files.close();
-	//				displayPhotoCounter();
-	//			}
-	//		}
-	//		//directory.list();
-	//	}
+	private List<String> getFilters() {
+
+		List<String> extensions = List.of();
+		if (filters.getText() != null && !filters.getText().isEmpty()) {
+			System.out.println("> " + filters.getText());
+			String[] split = filters.getText().split(",");
+			if (split != null) {
+				extensions = Arrays.stream(split)
+						.map(s -> s.trim().toLowerCase())
+						.collect(Collectors.toList());
+			}
+		}
+		return extensions;
+	}
 
 	@FXML
 	void clearPhotos(ActionEvent event) {
 		data.clear();
-		displayPhotoCounter();
+		displayPhotoCounter(null);
 	}
 
-	private void displayPhotoCounter() {
+	private void displayPhotoCounter(List<Path> invalidPhotos) {
 
 		String text = "";
 		if (data.isEmpty()) {
@@ -448,13 +459,21 @@ public class MainController implements Initializable {
 		} else {
 			text = data.size() + " photos analysées";
 		}
-		// photos with no date
+		// photos without date
 		long noDateCounter = data.stream().filter(photo -> photo.getDate() == null).count();
 		if (noDateCounter > 0) {
 			if (noDateCounter == 1) {
 				text += ", " + noDateCounter + " photo sans date";
 			} else {
 				text += ", " + noDateCounter + " photos sans date";
+			}
+		}
+		// invalid photos
+		if (invalidPhotos != null && !invalidPhotos.isEmpty()) {
+			if (invalidPhotos.size() == 1) {
+				text += ", " + invalidPhotos.size() + " photo invalide";
+			} else {
+				text += ", " + invalidPhotos.size() + " photos invalides";
 			}
 		}
 		photoCounter.setText(text);

@@ -6,37 +6,51 @@ package model;
  */
 public class PhotoMetadata {
 
-    private String camera;
-    private Long date;
-    private String subSeconds;
+	private Boolean valid;
+	private String camera;
+	private Long date;
+	private String subSeconds;
 
-    public String getCamera() {
-        return camera;
-    }
+	public PhotoMetadata() {
+		super();
+		this.valid = true;
+	}
 
-    public void setCamera(String camera) {
-        this.camera = camera;
-    }
+	public Boolean getValid() {
+		return valid;
+	}
 
-    public Long getDate() {
-        return date;
-    }
+	public void setValid(Boolean valid) {
+		this.valid = valid;
+	}
 
-    public void setDate(Long date) {
-        this.date = date;
-    }
+	public String getCamera() {
+		return camera;
+	}
 
-    public String getSubSeconds() {
-        return subSeconds;
-    }
+	public void setCamera(String camera) {
+		this.camera = camera;
+	}
 
-    public void setSubSeconds(String subSeconds) {
-        this.subSeconds = subSeconds;
-    }
+	public Long getDate() {
+		return date;
+	}
 
-    @Override
-    public String toString() {
-        return "PhotoMetadata{" + "camera=" + camera + ", date=" + date + ", subSeconds=" + subSeconds + '}';
-    }
+	public void setDate(Long date) {
+		this.date = date;
+	}
+
+	public String getSubSeconds() {
+		return subSeconds;
+	}
+
+	public void setSubSeconds(String subSeconds) {
+		this.subSeconds = subSeconds;
+	}
+
+	@Override
+	public String toString() {
+		return "PhotoMetadata [valid=" + valid + ", camera=" + camera + ", date=" + date + ", subSeconds=" + subSeconds + "]";
+	}
 
 }

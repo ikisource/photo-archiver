@@ -47,6 +47,7 @@ public class DrewPhotoMetadataExtractor implements PhotoMetadataExtractor {
         } catch (ImageProcessingException | IOException ex) {
             //Logger.getLogger(DrewPhotoMetadataExtractor.class.getName()).log(Level.SEVERE, null, ex);
             System.err.println("La photo " + path + " n'est pas exploitable");
+            photoMetadata.setValid(false);
         }
         return photoMetadata;
     }
