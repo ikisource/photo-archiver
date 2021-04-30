@@ -1,5 +1,6 @@
 package service;
 
+import java.time.Instant;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -37,20 +38,28 @@ public class CopyTestService extends Service<Long> {
 			@Override
 			protected Long call() {
 
-				long count = 10;
-				for (int i = 0; i < count; i++) {
+				long duration = 1000;
+				long t0 = Instant.now().toEpochMilli();
+				long count = 0;
+				while (count < 10) {
+					boolean elapsed = false;
 					if (isCancelled()) {
 						System.err.println("copy cancelled");
 						break;
 					}
-					try {
-						Thread.sleep(1000);
-						updateProgress(i+1, count);
-						updateMessage(String.valueOf(i) + " / " + count);
-					} catch (InterruptedException e) {
-						e.printStackTrace();
-					}
+					do {
+						long now = Instant.now().toEpochMilli();
+						if (now >= t0 + duration) {
+							elapsed = true;
+							t0 = now;
+						}
+					} while (!elapsed);
+					updateProgress(count + 1, 10);
+					updateMessage(String.valueOf(count) + " / " + 10);
+					count++;
 				}
+				//}
+				System.out.println("service terminé");
 				return count;
 			}
 		};

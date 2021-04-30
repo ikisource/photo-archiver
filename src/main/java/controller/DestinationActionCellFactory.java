@@ -42,6 +42,7 @@ public class DestinationActionCellFactory extends TableCell<Destination, Void> {
 		cancel.setOnAction(e -> {
 			if (service.getState().equals(State.RUNNING)) {
 				service.cancel();
+				service.reset();
 			}
 			System.out.println("Annuler copie vers " + getTableRow().getItem().getName());
 			//thumbService.prepare(data.stream().filter(photo -> photo.getExtension().equalsIgnoreCase("jpg")), destination, "author");
