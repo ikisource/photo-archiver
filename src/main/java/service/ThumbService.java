@@ -1,12 +1,13 @@
 package service;
 
 import java.awt.Graphics;
+import java.awt.Image;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.awt.Image;
+
 import javax.imageio.ImageIO;
+
 import org.apache.log4j.Logger;
 
 /**
@@ -23,7 +24,7 @@ public class ThumbService {
         double determineImageScale = determineImageScale(srcImage.getWidth(), srcImage.getHeight(), targetWidth, targetHeight);
         BufferedImage dstImage = scaleImage(srcImage, determineImageScale);
         ImageIO.write(dstImage, "jpg", thumb);
-
+        
         return dstImage;
     }
 

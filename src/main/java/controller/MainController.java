@@ -71,7 +71,7 @@ public class MainController implements Initializable {
 	private TableView<Photo> photos;
 
 	@FXML
-	private TableView destinations;
+	private TableView<Destination> destinations;
 
 	@FXML
 	private AnchorPane leftPane;
@@ -86,19 +86,19 @@ public class MainController implements Initializable {
 	private TableColumn<Photo, String> photoDateColumn;
 
 	@FXML
-	private TableColumn destinationEnabledColumn;
+	private TableColumn<Destination, Boolean> destinationEnabledColumn;
 
 	@FXML
-	private TableColumn destinationNameColumn;
+	private TableColumn<Destination, String> destinationNameColumn;
 
 	@FXML
-	private TableColumn destinationRawColumn;
+	private TableColumn<Destination, Boolean> destinationRawColumn;
 
 	@FXML
-	private TableColumn destinationJpgColumn;
+	private TableColumn<Destination, Boolean> destinationJpgColumn;
 
 	@FXML
-	private TableColumn destinationThumbColumn;
+	private TableColumn<Destination, Boolean> destinationThumbColumn;
 
 	@FXML
 	private TableColumn<Destination, String> destinationPathColumn;
@@ -149,13 +149,15 @@ public class MainController implements Initializable {
 	public void initialize(URL location, final ResourceBundle resources) {
 
 		sourceDirectory.setValue("/home/olivier/Téléchargements/test");
+		destinations.setItems(destinationsData);
 		destinationsData.add(new Destination(Boolean.TRUE, "USB Key", new File("/home/olivier/Téléchargements/olivier").toPath(), Boolean.TRUE, Boolean.TRUE, Boolean.TRUE));
+		//destinations.setPlaceholder(new Label("Pas de destinations"));
 
 		// photos
 		photos.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
 		photos.setItems(data);
 
-		photoEnabledColumn.setCellFactory(object -> new CheckBoxTableCell());
+		photoEnabledColumn.setCellFactory(object -> new CheckBoxTableCell<>());
 
 		// date
 		Callback<TableColumn<Photo, String>, TableCell<Photo, String>> photoDateCellFactory = new Callback<TableColumn<Photo, String>, TableCell<Photo, String>>() {
@@ -169,21 +171,19 @@ public class MainController implements Initializable {
 		photoDateColumn.setCellFactory(photoDateCellFactory);
 
 		// destinations
-		destinations.setItems(destinationsData);
-		destinationRawColumn.setCellFactory(object -> new CheckBoxTableCell());
-		destinationJpgColumn.setCellFactory(object -> new CheckBoxTableCell());
-		destinationThumbColumn.setCellFactory(object -> new CheckBoxTableCell());
-		destinationEnabledColumn.setCellFactory(object -> new CheckBoxTableCell());
+		destinationRawColumn.setCellFactory(object -> new CheckBoxTableCell<>());
+		destinationJpgColumn.setCellFactory(object -> new CheckBoxTableCell<>());
+		destinationThumbColumn.setCellFactory(object -> new CheckBoxTableCell<>());
+		destinationEnabledColumn.setCellFactory(object -> new CheckBoxTableCell<>());
 
-		// path
+		// action
 		Callback<TableColumn<Destination, Void>, TableCell<Destination, Void>> destinationActionCellFactory = new Callback<TableColumn<Destination, Void>, TableCell<Destination, Void>>() {
-
 			@Override
 			public TableCell<Destination, Void> call(TableColumn<Destination, Void> p) {
-				return new DestinationActionCellFactory();
+				System.out.println("ok ");
+				return new DestinationActionCellFactory(data);
 			}
 		};
-		//destinationActionColumn.setCellValueFactory(new PropertyValueFactory<?, ?>("path"));
 		destinationActionColumn.setCellFactory(destinationActionCellFactory);
 
 		// bindings
@@ -260,7 +260,7 @@ public class MainController implements Initializable {
 	@FXML
 	protected void removeDestination(ActionEvent event) {
 
-		Destination destination = (Destination) destinations.getSelectionModel().getSelectedItem();
+		Destination destination = destinations.getSelectionModel().getSelectedItem();
 		if (destination != null) {
 			destinationsData.remove(destination);
 		}
@@ -269,7 +269,7 @@ public class MainController implements Initializable {
 	@FXML
 	protected void selectDestination(MouseEvent event) {
 
-		Destination destination = (Destination) destinations.getSelectionModel().getSelectedItem();
+		Destination destination = destinations.getSelectionModel().getSelectedItem();
 		if (destination != null) {
 			System.out.println(destination);
 		}

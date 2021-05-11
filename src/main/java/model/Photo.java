@@ -3,7 +3,6 @@ package model;
 import java.io.File;
 import java.nio.file.Path;
 import java.text.SimpleDateFormat;
-import java.time.Instant;
 
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -15,115 +14,117 @@ import javafx.beans.property.StringProperty;
  * @author Olivier MATHE
  */
 public class Photo {
-    
-    private static final String DATE_FORMAT = "yyyy:MM:dd kk:mm:ss";
-    private static final String DESTINATION_DIRECTORY_PATH = "yyyy/MM";
 
-    private BooleanProperty enabled;
-    private StringProperty originName;
-    private StringProperty name;
-    private Path path;
-    private StringProperty date;
-    private StringProperty camera;
-    private PhotoMetadata metadata;
+	private static final String DATE_FORMAT = "yyyy:MM:dd kk:mm:ss";
+	private static final String DESTINATION_DIRECTORY_PATH = "yyyy/MM";
 
-    public Photo(Boolean enabled, String name, Path path, PhotoMetadata metadata) {
-        this.enabled = new SimpleBooleanProperty(enabled);
-        this.name = new SimpleStringProperty(name);
-        this.originName = new SimpleStringProperty(path.getFileName().toString());
-        this.path = path;
-        this.metadata = metadata;
-        if (metadata.getDate() == null) {
-        	this.date = new SimpleStringProperty();
-        	setEnabled(false);
-        } else {
-        	this.date = new SimpleStringProperty(new SimpleDateFormat(DATE_FORMAT).format(metadata.getDate()));
-        }
-        this.camera = new SimpleStringProperty(metadata.getCamera());
-    }
+	private BooleanProperty enabled;
+	private StringProperty originName;
+	private StringProperty name;
+	private Path path;
+	private StringProperty date;
+	private StringProperty camera;
+	private PhotoMetadata metadata;
 
-    public Boolean getEnabled() {
-        return enabled.get();
-    }
+	public Photo(Boolean enabled, String name, Path path, PhotoMetadata metadata) {
+		this.enabled = new SimpleBooleanProperty(enabled);
+		this.name = new SimpleStringProperty(name);
+		this.originName = new SimpleStringProperty(path.getFileName().toString());
+		this.path = path;
+		this.metadata = metadata;
+		if (metadata.getDate() == null) {
+			this.date = new SimpleStringProperty();
+			setEnabled(false);
+		} else {
+			this.date = new SimpleStringProperty(new SimpleDateFormat(DATE_FORMAT).format(metadata.getDate()));
+		}
+		this.camera = new SimpleStringProperty(metadata.getCamera());
+	}
 
-    public void setEnabled(Boolean enabled) {
-        this.enabled.set(enabled);
-    }
+	public Boolean getEnabled() {
+		return enabled.get();
+	}
 
-    public BooleanProperty enabledProperty() {
-        return enabled;
-    }
+	public void setEnabled(Boolean enabled) {
+		this.enabled.set(enabled);
+	}
 
-    public String getOriginName() {
-        return originName.get();
-    }
+	public BooleanProperty enabledProperty() {
+		return enabled;
+	}
 
-    public void setOriginName(String originName) {
-        this.originName.set(originName);
-    }
+	public String getOriginName() {
+		return originName.get();
+	}
 
-    public StringProperty originNameProperty() {
-        return originName;
-    }
+	public void setOriginName(String originName) {
+		this.originName.set(originName);
+	}
 
-    public StringProperty nameProperty() {
-        return name;
-    }
+	public StringProperty originNameProperty() {
+		return originName;
+	}
 
-    public String getName() {
-        return name.get();
-    }
+	public StringProperty nameProperty() {
+		return name;
+	}
 
-    public void setName(String name) {
-        this.name.set(name);
-    }
+	public String getName() {
+		return name.get();
+	}
 
-    public StringProperty cameraProperty() {
-        return camera;
-    }
+	public void setName(String name) {
+		this.name.set(name);
+	}
 
-    public Path getPath() {
-        return path;
-    }
+	public StringProperty cameraProperty() {
+		return camera;
+	}
 
-    public String getDate() {
-        return date.get();
-    }
+	public Path getPath() {
+		return path;
+	}
 
-    public StringProperty dateProperty() {
-        return date;
-    }
+	public String getDate() {
+		return date.get();
+	}
 
-    public String getExtension() {
+	public StringProperty dateProperty() {
+		return date;
+	}
 
-        String[] split = originName.get().split("\\.");
-        return split[1] == null ? "" : split[1];
-    }
+	public String getExtension() {
 
-    public void formatName() {
-    	
-    	if (date.get() != null && metadata.getSubSeconds() != null) {
-    		String[] split = path.getFileName().toString().split("\\.");
-    		String extension = split[1].toLowerCase();
-    		this.name.set(date.get().replaceAll(":", "-").replace(" ", "_") + "," + metadata.getSubSeconds() + "." + extension);
-    	}
-    }
+		String[] split = originName.get().split("\\.");
+		return split[1] == null ? "" : split[1];
+	}
 
-    public String buildDirectoryName() {
-        Instant instant = Instant.ofEpochMilli(metadata.getDate());
-        //int m = instant.get(ChronoField.MONTH_OF_YEAR);
+	public void formatName() {
 
-        
-        // 2015:11
-        String[] split = date.get().split(":");
-        
-        System.out.println("directory : " + split[0] + File.separator + split[1]);
-        return split[0] + File.separator + split[1];
-    }
+		if (date.get() != null) {
+			String[] split = path.getFileName().toString().split("\\.");
+			String extension = split[1].toLowerCase();
+			String subSeconds = metadata.getSubSeconds() == null ? "00" : metadata.getSubSeconds();
+			this.name.set(date.get().replaceAll(":", "-").replace(" ", "_") + "," + subSeconds + "." + extension);
+		}
+	}
 
-    @Override
-    public String toString() {
-        return "Photo{" + "enabled=" + enabled + ", originName=" + originName + ", name=" + name + ", path=" + path + ", date=" + date + ", camera=" + camera + ", metadata=" + metadata + '}';
-    }
-    
+	public String buildDirectoryName() {
+
+		String directoryName = "";
+		if (date.get() != null) {
+			// 2015:11
+			String[] split = date.get().split(":");
+			if (split != null && split.length >= 2) {
+				directoryName = split[0] + File.separator + split[1];
+			}
+		}
+		return directoryName;
+	}
+
+	@Override
+	public String toString() {
+		return "Photo{" + "enabled=" + enabled + ", originName=" + originName + ", name=" + name + ", path=" + path + ", date=" + date + ", camera=" + camera + ", metadata=" + metadata + '}';
+	}
+
 }

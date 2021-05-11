@@ -137,7 +137,7 @@
 										<Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
 									</VBox.margin>
 								</HBox>
-								<TableView fx:id="destinations" editable="true" maxHeight="-Infinity" onMouseClicked="#selectDestination" prefHeight="300.0" prefWidth="728.0" VBox.vgrow="SOMETIMES">
+								<TableView fx:id="destinations" editable="true" maxHeight="-Infinity" onMouseClicked="#selectDestination" prefHeight="188.0" prefWidth="728.0" VBox.vgrow="SOMETIMES">
 									<columns>
 										<TableColumn fx:id="destinationEnabledColumn" prefWidth="54.0" text="Activé">
 											<cellValueFactory>
