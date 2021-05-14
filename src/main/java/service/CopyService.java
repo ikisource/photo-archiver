@@ -14,9 +14,9 @@ import javafx.concurrent.Task;
 import model.Destination;
 import model.Photo;
 
-public class CopyTestService extends Service<Long> {
+public class CopyService extends Service<Long> {
 
-	private static Logger logger = Logger.getLogger(CopyTestService.class);
+	private static Logger logger = Logger.getLogger(CopyService.class);
 	final static int WIDTH = 1080;
 	final static int HEIGHT = 720;
 	private DestinationActionCellFactory destinationActionCellFactory;
@@ -24,24 +24,17 @@ public class CopyTestService extends Service<Long> {
 	private Destination destination;
 	private String author;
 
-	public CopyTestService() {
+	public CopyService() {
 		super();
 	}
 
-	public CopyTestService(DestinationActionCellFactory destinationActionCellFactory, List<Photo> photos, Destination destination, String author) {
+	public CopyService(DestinationActionCellFactory destinationActionCellFactory, List<Photo> photos, Destination destination, String author) {
 		super();
 		this.destinationActionCellFactory = destinationActionCellFactory;
 		this.photos = photos;
 		this.destination = destination;
 		this.author = "";
 	}
-
-	//	public void prepare(final Stream<Photo> photos, final Destination destination, final String author) {
-	//
-	//		this.photos = photos.collect(Collectors.toList());
-	//		this.destination = destination;
-	//		this.author = author;
-	//	}
 
 	@Override
 	protected Task<Long> createTask() {
@@ -52,7 +45,16 @@ public class CopyTestService extends Service<Long> {
 			protected Long call() {
 
 				long count = 0;
+				int rawCount = 0;
+				int jpgCount = 0;
+				int thumbCount = 0;
+
 				long total = photos.stream().filter(p -> p.getEnabled()).count();
+				long rawTotal = photos.stream().filter(p -> p.getExtension().equalsIgnoreCase("cr2"))
+						.filter(p -> p.getEnabled()).count();
+				long jpgTotal = photos.stream().filter(p -> p.getExtension().equalsIgnoreCase("jpg"))
+						.filter(p -> p.getEnabled()).count();
+
 				for (Photo photo : photos) {
 					if (photo.getEnabled()) {
 						if (isCancelled()) {
@@ -72,6 +74,7 @@ public class CopyTestService extends Service<Long> {
 									Files.copy(photo.getPath(), photoFile, StandardCopyOption.REPLACE_EXISTING);
 									System.out.println("photo " + photo.getOriginName() + " copied to " + directoryPath);
 									copied = true;
+									jpgCount++;
 								} catch (Exception ex) {
 									logger.error(ex);
 								}
@@ -84,6 +87,7 @@ public class CopyTestService extends Service<Long> {
 									ThumbService.resizeImage(photo.getPath().toFile(), dest.toFile(), WIDTH, HEIGHT);
 									System.out.println("photo " + photo.getOriginName() + " copied to " + directoryPath);
 									copied = true;
+									thumbCount++;
 								} catch (Exception ex) {
 									logger.error(ex);
 								}
@@ -100,6 +104,7 @@ public class CopyTestService extends Service<Long> {
 									System.out.println("photo " + photo.getOriginName() + " copied to " + directoryPath);
 									Files.copy(photo.getPath(), photoFile, StandardCopyOption.REPLACE_EXISTING);
 									count++;
+									rawCount++;
 								} catch (Exception ex) {
 									logger.error(ex);
 								}
@@ -107,31 +112,9 @@ public class CopyTestService extends Service<Long> {
 						}
 						updateProgress(count + 1, total);
 						updateMessage(String.valueOf(count) + " / " + total);
+						destination.updateStatus(rawCount, jpgCount, thumbCount, rawTotal, jpgTotal);
 					}
-
 				}
-
-				/*long duration = 1000;
-				long t0 = Instant.now().toEpochMilli();
-				long count2 = 0;
-				while (count2 < 10) {
-					boolean elapsed = false;
-					if (isCancelled()) {
-						System.err.println("copy cancelled");
-						break;
-					}
-					do {
-						long now = Instant.now().toEpochMilli();
-						if (now >= t0 + duration) {
-							elapsed = true;
-							t0 = now;
-						}
-					} while (!elapsed);
-					updateProgress(count2 + 1, 10);
-					updateMessage(String.valueOf(count2) + " / " + 10);
-					count2++;
-				}*/
-				//}
 				System.out.println((count) + " photos copied");
 				return count;
 			}

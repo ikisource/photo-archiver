@@ -2,9 +2,6 @@ package controller;
 
 import java.util.List;
 
-import javafx.beans.binding.Bindings;
-import javafx.beans.binding.BooleanBinding;
-import javafx.collections.ObservableList;
 import javafx.concurrent.Worker.State;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -14,12 +11,11 @@ import javafx.scene.control.ProgressBar;
 import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.TableCell;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.StackPane;
 import model.Destination;
 import model.Photo;
 import service.CopyService;
 
-public class DestinationActionCellFactory extends TableCell<Destination, Void> {
+public class DestinationProgressCellFactory extends TableCell<Destination, Void> {
 
 	private List<Photo> photos;
 
@@ -27,59 +23,28 @@ public class DestinationActionCellFactory extends TableCell<Destination, Void> {
 	private Button copy;
 	private Button cancel;
 //	private TextField textField;
-	private StackPane stackPane;
+//	private StackPane stackPane;
 	private ProgressBar progressBar;
 	private ProgressIndicator progressIndicator;
 	CopyService service;
 
-	public DestinationActionCellFactory(ObservableList<Photo> photos) {
+	public DestinationProgressCellFactory(List<Photo> photos) {
 		super();
 
 		this.photos = photos;
-		
+
 		copy = new Button("Copier");
-//		copy.disableProperty().bind(new SimpleBooleanProperty(photos.size() == 0));
-		BooleanBinding bb = Bindings.createBooleanBinding(() ->
-				photos.size( )== 0, photos);
-		copy.disableProperty().bind(bb);
-		
-//		allSelected = Bindings.createBooleanBinding(() -> 
-//        // compute value of binding:
-//        Stream.of(packages).allMatch(CheckBox::isSelected), 
-//        // array of thing to observe to recompute binding - this gives the array
-//        // of all the check boxes' selectedProperty()s.
-//        Stream.of(packages).map(CheckBox::selectedProperty).toArray(Observable[]::new));
-		
-		
-		
 		cancel = new Button("Annuler");
 		//cancel.setVisible(false);
 		progressBar = new ProgressBar(0);
+		//progressBar.setProgress(0);
 		progressIndicator = new ProgressIndicator(0);
-//		progressBar.setProgress(0);
-//        progressIndicator.setProgress(0);
+        //progressIndicator.setProgress(0);
 		hBox = new HBox(copy);
 		hBox.setAlignment(Pos.CENTER_LEFT);
 		hBox.setSpacing(5);
 		
-		/*progressBar.prefHeightProperty().bind(copy.prefHeightProperty());
-		progressBar.minHeightProperty().bind(copy.minHeightProperty());
-		progressBar.maxHeightProperty().bind(copy.maxHeightProperty());
-		
-		progressBar.prefWidthProperty().bind(copy.prefWidthProperty());
-		progressBar.minWidthProperty().bind(copy.minWidthProperty());
-		progressBar.maxWidthProperty().bind(copy.maxWidthProperty());*/
-		progressBar.setPrefWidth(70);
-		copy.setPrefWidth(70);
-		progressBar.setPrefHeight(25);
-		
-		System.err.println("h="+copy.getHeight());
-//		System.err.println("minh="+copy.getMinHeight());
-//		System.err.println("maxh="+copy.getMaxHeight());
-		
-		stackPane = new StackPane(copy);
-		setGraphic(stackPane);
-		
+		setGraphic(hBox);
 		setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
 
 		//		System.out.println("getTableRow() = " + getTableRow());
@@ -102,24 +67,20 @@ public class DestinationActionCellFactory extends TableCell<Destination, Void> {
 //				copy.setDisable(true);
 //				copy.setVisible(false);
 //				cancel.setDisable(false);
-				//fillHBox(cancel, progressBar, progressIndicator);
-				cancel.setOpacity(0.5);
-				fillStack(progressBar, cancel);
+				fillHBox(cancel, progressBar, progressIndicator);
 			});
 			service.setOnSucceeded(event -> {
 //				copy.setDisable(false);
 //				cancel.setDisable(true);
 //				cancel.setVisible(false);
-				//fillHBox(copy);
-				fillStack(copy);
+				fillHBox(copy);
 				service.reset();
 			});
 			service.setOnCancelled(event -> {
 //				copy.setDisable(false);
 //				cancel.setDisable(true);
 //				cancel.setVisible(false);
-//				fillHBox(copy);
-				fillStack(copy);
+				fillHBox(copy);
 				service.reset();
 				System.out.println("Annuler copie vers " + getTableRow().getItem().getName());
 			});
@@ -130,6 +91,7 @@ public class DestinationActionCellFactory extends TableCell<Destination, Void> {
 				service.cancel();
 			}
 		});
+
 	}
 
 	@Override
@@ -140,11 +102,9 @@ public class DestinationActionCellFactory extends TableCell<Destination, Void> {
 		if (empty) {
 			setGraphic(null);
 		} else {
-			if (getTableRow() != null) {
-				Destination destination = getTableRow().getItem();
-				System.out.println(destination);
-				service = new CopyService(this, photos, destination, "");
-			}
+			Destination destination = getTableRow().getItem();
+			System.out.println(destination);
+			//service = new CopyService(this, photos, destination, "");
 		}
 	}
 	
@@ -158,12 +118,6 @@ public class DestinationActionCellFactory extends TableCell<Destination, Void> {
 //		private TextField textField;
 //		private StackPane stackPane;
 //		private ProgressBar progressBar;
-	}
-	
-	private void fillStack(Node ... nodes) {
-		
-		stackPane.getChildren().clear();
-		stackPane.getChildren().addAll(nodes);
 	}
 
 }

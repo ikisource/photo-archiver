@@ -3,6 +3,9 @@ package model;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Objects;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleStringProperty;
@@ -14,134 +17,152 @@ import javafx.beans.property.StringProperty;
  */
 public class Destination {
 
-    private BooleanProperty enabled;
-    private StringProperty name;
-    private StringProperty path;
-    private BooleanProperty raw;
-    private BooleanProperty jpg;
-    private BooleanProperty thumb;
+	private StringProperty name;
+	private StringProperty path;
+	private BooleanProperty raw;
+	private BooleanProperty jpg;
+	private BooleanProperty thumb;
+	private StringProperty status;
 
-    public Destination(Boolean enabled, String name, Path path, Boolean raw, Boolean jpg, Boolean thumb) {
-        this.enabled = new SimpleBooleanProperty(enabled);
-        this.name = new SimpleStringProperty(name);
-        this.path = new SimpleStringProperty(path.toString());
-        this.raw = new SimpleBooleanProperty(raw);
-        this.jpg = new SimpleBooleanProperty(jpg);
-        this.thumb = new SimpleBooleanProperty(thumb);
-    }
+	public Destination(Boolean enabled, String name, Path path, Boolean raw, Boolean jpg, Boolean thumb) {
+		this.name = new SimpleStringProperty(name);
+		this.path = new SimpleStringProperty(path.toString());
+		this.raw = new SimpleBooleanProperty(raw);
+		this.jpg = new SimpleBooleanProperty(jpg);
+		this.thumb = new SimpleBooleanProperty(thumb);
+		this.status = new SimpleStringProperty();
+	}
 
-    public Boolean getEnabled() {
-        return enabled.get();
-    }
+	public String getName() {
+		return name.get();
+	}
 
-    public void setEnabled(Boolean enabled) {
-        this.enabled.set(enabled);
-    }
+	public void setName(String name) {
+		this.name.set(name);
+	}
 
-    public BooleanProperty enabledProperty() {
-        return enabled;
-    }
+	public StringProperty nameProperty() {
+		return name;
+	}
 
-    public String getName() {
-        return name.get();
-    }
+	public String getPath() {
+		return path.get();
+	}
 
-    public void setName(String name) {
-        this.name.set(name);
-    }
+	public void setPath(String path) {
+		this.path.set(path);
+	}
 
-    public StringProperty nameProperty() {
-        return name;
-    }
+	public StringProperty pathProperty() {
+		return path;
+	}
 
-    public String getPath() {
-        return path.get();
-    }
+	public Boolean getRaw() {
+		return raw.get();
+	}
 
-    public void setPath(String path) {
-        this.path.set(path);
-    }
+	public void setRaw(Boolean raw) {
+		this.raw.set(raw);
+	}
 
-    public StringProperty pathProperty() {
-        return path;
-    }
+	public BooleanProperty rawProperty() {
+		return raw;
+	}
 
-    public Boolean getRaw() {
-        return raw.get();
-    }
+	public Boolean getJpg() {
+		return jpg.get();
+	}
 
-    public void setRaw(Boolean raw) {
-        this.raw.set(raw);
-    }
+	public void setJpg(Boolean jpg) {
+		this.jpg.set(jpg);
+	}
 
-    public BooleanProperty rawProperty() {
-        return raw;
-    }
+	public BooleanProperty jpgProperty() {
+		return jpg;
+	}
 
-    public Boolean getJpg() {
-        return jpg.get();
-    }
+	public Boolean getThumb() {
+		return thumb.get();
+	}
 
-    public void setJpg(Boolean jpg) {
-        this.jpg.set(jpg);
-    }
+	public void setThumb(Boolean thumb) {
+		this.thumb.set(thumb);
+	}
 
-    public BooleanProperty jpgProperty() {
-        return jpg;
-    }
+	public BooleanProperty thumbProperty() {
+		return thumb;
+	}
 
-    public Boolean getThumb() {
-        return thumb.get();
-    }
+	public String getStatus() {
+		return status.get();
+	}
 
-    public void setThumb(Boolean thumb) {
-        this.thumb.set(thumb);
-    }
+	public void setStatus(String status) {
+		this.status.set(status);
+	}
 
-    public BooleanProperty thumbProperty() {
-        return thumb;
-    }
+	public StringProperty statusProperty() {
+		return status;
+	}
 
-    public boolean exists() {
-        Path p = Paths.get(path.get());
-        return p.toFile().exists();
-    }
+	public boolean exists() {
+		Path p = Paths.get(path.get());
+		return p.toFile().exists();
+	}
 
-    public void create() {
-        if (!exists()) {
-            Path p = Paths.get(path.get());
-            p.toFile().mkdir();
-        }
-    }
+	public void create() {
+		if (!exists()) {
+			Path p = Paths.get(path.get());
+			p.toFile().mkdir();
+		}
+	}
 
-    @Override
-    public int hashCode() {
-        int hash = 5;
-        hash = 67 * hash + Objects.hashCode(this.path);
-        return hash;
-    }
+	public void updateStatus(int rawCount, int jpgCount, int thumbCount, long rawTotal, long jpgTotal) {
+		String statusRaw = "";
+		String statusJpg = "";
+		String statusThumb = "";
+		if (raw.get()) {
+			statusRaw += "RAW: " + rawCount + "/" + rawTotal;
+		}
+		if (jpg.get()) {
+			statusJpg = "JPG: " + jpgCount + "/" + jpgTotal;
+		}
+		if (thumb.get()) {
+			statusThumb = "Vignettes: " + thumbCount + "/" + jpgTotal;
+		}
+		setStatus(Stream.of(statusRaw, statusJpg, statusThumb)
+				.filter(s -> !s.isEmpty())
+				.collect(Collectors.joining(", ")));
+	}
 
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (obj == null) {
-            return false;
-        }
-        if (getClass() != obj.getClass()) {
-            return false;
-        }
-        final Destination other = (Destination) obj;
-        if (!Objects.equals(this.path, other.path)) {
-            return false;
-        }
-        return true;
-    }
+	@Override
+	public int hashCode() {
+		int hash = 5;
+		hash = 67 * hash + Objects.hashCode(this.path);
+		return hash;
+	}
 
-    @Override
-    public String toString() {
-        return "Destination{" + "enabled=" + enabled.get() + ", name=" + name.get() + ", path=" + path.get() + ", raw=" + raw.get() + ", jpg=" + jpg.get() + ", thumb=" + thumb.get() + '}';
-    }
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (obj == null) {
+			return false;
+		}
+		if (getClass() != obj.getClass()) {
+			return false;
+		}
+		final Destination other = (Destination) obj;
+		if (!Objects.equals(this.path, other.path)) {
+			return false;
+		}
+		return true;
+	}
+
+	@Override
+	public String toString() {
+		return "Destination{" + "name=" + name.get() + ", path=" + path.get() + ", raw=" + raw.get() + ", jpg=" + jpg.get() + ", thumb=" + thumb.get() + '}';
+	}
 
 }

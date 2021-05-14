@@ -30,7 +30,6 @@ import javafx.collections.ObservableList;
 import javafx.concurrent.Service;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
@@ -45,7 +44,6 @@ import javafx.scene.control.cell.CheckBoxTableCell;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.DirectoryChooser;
 import javafx.util.Callback;
@@ -54,9 +52,7 @@ import model.DrewPhotoMetadataExtractor;
 import model.Photo;
 import model.PhotoMetadata;
 import model.PhotoMetadataExtractor;
-import service.CopyJpgService;
 import service.CopyRawService;
-import service.CopyThumbService;
 
 /**
  *
@@ -85,8 +81,8 @@ public class MainController implements Initializable {
 	@FXML
 	private TableColumn<Photo, String> photoDateColumn;
 
-	@FXML
-	private TableColumn<Destination, Boolean> destinationEnabledColumn;
+//	@FXML
+//	private TableColumn<Destination, Boolean> destinationEnabledColumn;
 
 	@FXML
 	private TableColumn<Destination, String> destinationNameColumn;
@@ -105,6 +101,9 @@ public class MainController implements Initializable {
 	
 	@FXML
     private TableColumn<Destination, Void> destinationActionColumn;
+	
+	@FXML
+	private TableColumn<Destination, String> destinationStatusColumn;
 
 	@FXML
 	private VBox copyBox;
@@ -174,13 +173,11 @@ public class MainController implements Initializable {
 		destinationRawColumn.setCellFactory(object -> new CheckBoxTableCell<>());
 		destinationJpgColumn.setCellFactory(object -> new CheckBoxTableCell<>());
 		destinationThumbColumn.setCellFactory(object -> new CheckBoxTableCell<>());
-		destinationEnabledColumn.setCellFactory(object -> new CheckBoxTableCell<>());
-
+		
 		// action
 		Callback<TableColumn<Destination, Void>, TableCell<Destination, Void>> destinationActionCellFactory = new Callback<TableColumn<Destination, Void>, TableCell<Destination, Void>>() {
 			@Override
 			public TableCell<Destination, Void> call(TableColumn<Destination, Void> p) {
-				System.out.println("ok ");
 				return new DestinationActionCellFactory(data);
 			}
 		};
@@ -275,7 +272,7 @@ public class MainController implements Initializable {
 		}
 	}
 
-	@FXML
+	/*@FXML
 	protected void copy(ActionEvent event) throws IOException {
 
 		//copies
@@ -335,7 +332,7 @@ public class MainController implements Initializable {
 				Logger.getLogger(MainController.class.getName()).log(Level.SEVERE, null, ex);
 			}
 		});
-	}
+	}*/
 
 	@FXML
 	protected void cancelCopy(ActionEvent event) throws IOException {
