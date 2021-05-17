@@ -25,6 +25,8 @@ import com.drew.metadata.Metadata;
 import com.drew.metadata.Tag;
 import com.drew.metadata.exif.ExifSubIFDDirectory;
 
+import commons.AlertBuilder;
+import configuration.ConfigurationManager;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Service;
@@ -32,8 +34,8 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
-import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TableCell;
@@ -59,9 +61,11 @@ import service.CopyRawService;
  * @author olivier MATHE
  */
 public class MainController implements Initializable {
-
+	
+	private ObservableList<Destination> destinationsData = null;
+	
 	@FXML
-	private ComboBox<String> sourceDirectory;
+	private TextField sourceDirectory;
 
 	@FXML
 	private TableView<Photo> photos;
@@ -81,8 +85,8 @@ public class MainController implements Initializable {
 	@FXML
 	private TableColumn<Photo, String> photoDateColumn;
 
-//	@FXML
-//	private TableColumn<Destination, Boolean> destinationEnabledColumn;
+	//	@FXML
+	//	private TableColumn<Destination, Boolean> destinationEnabledColumn;
 
 	@FXML
 	private TableColumn<Destination, String> destinationNameColumn;
@@ -98,10 +102,10 @@ public class MainController implements Initializable {
 
 	@FXML
 	private TableColumn<Destination, String> destinationPathColumn;
-	
+
 	@FXML
-    private TableColumn<Destination, Void> destinationActionColumn;
-	
+	private TableColumn<Destination, Void> destinationActionColumn;
+
 	@FXML
 	private TableColumn<Destination, String> destinationStatusColumn;
 
@@ -118,7 +122,7 @@ public class MainController implements Initializable {
 	private Label photoCounter;
 
 	@FXML
-	private CheckBox recursiveAnalyse;
+	private CheckBox includeSubDirectories;
 
 	@FXML
 	private TextField filters;
@@ -129,7 +133,6 @@ public class MainController implements Initializable {
 	private PhotoMetadataExtractor metadataExtractor;
 
 	private final ObservableList<Photo> data = FXCollections.observableArrayList();
-	private final ObservableList<Destination> destinationsData = FXCollections.observableArrayList();
 
 	Map<String, Service> services;
 	//CopyJpgService copyJpgService;
@@ -146,11 +149,18 @@ public class MainController implements Initializable {
 
 	@Override
 	public void initialize(URL location, final ResourceBundle resources) {
-
-		sourceDirectory.setValue("/home/olivier/Téléchargements/test");
+		
+		destinationsData = ConfigurationManager.getConfiguration().getDestinations();
+		
+		//sourceDirectory.setText("/home/olivier/Téléchargements/test");
 		destinations.setItems(destinationsData);
-		destinationsData.add(new Destination(Boolean.TRUE, "USB Key", new File("/home/olivier/Téléchargements/olivier").toPath(), Boolean.TRUE, Boolean.TRUE, Boolean.TRUE));
+		//destinationsData.add(new Destination(Boolean.TRUE, "USB Key", new File("/home/olivier/Téléchargements/olivier").toPath(), Boolean.TRUE, Boolean.TRUE, Boolean.TRUE));
 		//destinations.setPlaceholder(new Label("Pas de destinations"));
+		
+		// bindings
+		sourceDirectory.textProperty().bindBidirectional(ConfigurationManager.getConfiguration().sourceProperty());
+		filters.textProperty().bindBidirectional(ConfigurationManager.getConfiguration().filterProperty());
+		includeSubDirectories.selectedProperty().bindBidirectional(ConfigurationManager.getConfiguration().includeSubDirectoriesProperty());
 
 		// photos
 		photos.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
@@ -173,7 +183,7 @@ public class MainController implements Initializable {
 		destinationRawColumn.setCellFactory(object -> new CheckBoxTableCell<>());
 		destinationJpgColumn.setCellFactory(object -> new CheckBoxTableCell<>());
 		destinationThumbColumn.setCellFactory(object -> new CheckBoxTableCell<>());
-		
+
 		// action
 		Callback<TableColumn<Destination, Void>, TableCell<Destination, Void>> destinationActionCellFactory = new Callback<TableColumn<Destination, Void>, TableCell<Destination, Void>>() {
 			@Override
@@ -246,11 +256,11 @@ public class MainController implements Initializable {
 
 		System.out.println("controller.MainController.addDestination()");
 		DirectoryChooser directoryChooser = new DirectoryChooser();
-		directoryChooser.setInitialDirectory(new File("/media/DATA/copy"));
+		//directoryChooser.setInitialDirectory(new File("/media/DATA/copy"));
 		directoryChooser.setTitle("Sélection du répertoire de copie");
 		File directory = directoryChooser.showDialog(null);
 		if (directory != null) {
-			destinationsData.add(new Destination(Boolean.TRUE, "USB Key", directory.toPath(), Boolean.TRUE, Boolean.TRUE, Boolean.TRUE));
+			destinationsData.add(new Destination(Boolean.TRUE, ConfigurationManager.DESTINATION_NAME, directory.toPath(), Boolean.TRUE, Boolean.TRUE, Boolean.TRUE));
 		}
 	}
 
@@ -259,7 +269,12 @@ public class MainController implements Initializable {
 
 		Destination destination = destinations.getSelectionModel().getSelectedItem();
 		if (destination != null) {
-			destinationsData.remove(destination);
+
+			String message = "Etes-vous sûr de vouloir supprimer la destination\n" + destination.getName() + " ?";
+			ButtonType response = AlertBuilder.confirm("Supprimer une destination", message);
+			if (response.equals(ButtonType.OK)) {
+				destinationsData.remove(destination);
+			}
 		}
 	}
 
@@ -274,27 +289,27 @@ public class MainController implements Initializable {
 
 	/*@FXML
 	protected void copy(ActionEvent event) throws IOException {
-
+	
 		//copies
 		destinationsData.stream().forEach(destination -> {
 			try {
 				destination.create();
-
+	
 				if (destination.getJpg()) {
 					if (services.get(destination.getPath() + "jpg") == null) {
 						FXMLLoader fxmlLoader = new FXMLLoader();
 						HBox hBox = fxmlLoader.load(this.getClass().getResource("/copyBox.fxml").openStream());
 						CopyBoxController copyBoxController = fxmlLoader.getController();
 						copyBoxController.setCopyName("JPG: " + destination.getName());
-
+	
 						copyBox.getChildren().add(hBox);
-
+	
 						CopyJpgService jpgService = new CopyJpgService();
 						jpgService.prepare(data.stream().filter(photo -> photo.getExtension().equalsIgnoreCase("jpg")), destination, "author");
 						copyBoxController.setService(this, jpgService, destination.getPath() + "jpg", hBox);
 						services.put(destination.getPath() + "jpg", jpgService);
 						jpgService.start();
-
+	
 					}
 				}
 				if (destination.getThumb()) {
@@ -304,7 +319,7 @@ public class MainController implements Initializable {
 						CopyBoxController copyBoxController = fxmlLoader.getController();
 						copyBoxController.setCopyName("THUMB: " + destination.getName());
 						copyBox.getChildren().add(hBox);
-
+	
 						CopyThumbService thumbService = new CopyThumbService();
 						thumbService.prepare(data.stream().filter(photo -> photo.getExtension().equalsIgnoreCase("jpg")), destination, "author");
 						copyBoxController.setService(this, thumbService, destination.getPath() + "thumb", hBox);
@@ -319,7 +334,7 @@ public class MainController implements Initializable {
 						CopyBoxController copyBoxController = fxmlLoader.getController();
 						copyBoxController.setCopyName("RAW: " + destination.getName());
 						copyBox.getChildren().add(hBox);
-
+	
 						CopyRawService rawService = new CopyRawService();
 						rawService.prepare(data.stream().filter(photo -> photo.getExtension().equalsIgnoreCase("cr2")), destination, "author");
 						copyBoxController.setService(this, rawService, destination.getPath() + "raw", hBox);
@@ -327,7 +342,7 @@ public class MainController implements Initializable {
 						rawService.start();
 					}
 				}
-
+	
 			} catch (IOException ex) {
 				Logger.getLogger(MainController.class.getName()).log(Level.SEVERE, null, ex);
 			}
@@ -378,7 +393,7 @@ public class MainController implements Initializable {
 		directoryChooser.setTitle("Sélection du répertoire de photos");
 		File directory = directoryChooser.showDialog(null);
 		if (directory != null) {
-			sourceDirectory.setValue(directory.getAbsolutePath());
+			sourceDirectory.setText(directory.getAbsolutePath());
 		}
 	}
 
@@ -387,14 +402,14 @@ public class MainController implements Initializable {
 
 		getFilters();
 
-		File directory = new File(sourceDirectory.getValue().toString());
+		File directory = new File(sourceDirectory.getText());
 
 		data.clear();
 		List<Path> invalidPhotos = new ArrayList<>();
 		Stream<Path> files = null;
 
 		try {
-			if (recursiveAnalyse.isSelected()) {
+			if (includeSubDirectories.isSelected()) {
 				files = Files.walk(Paths.get(directory.toURI()))
 						.filter(Files::isRegularFile);
 			} else {

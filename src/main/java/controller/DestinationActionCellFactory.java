@@ -73,21 +73,10 @@ public class DestinationActionCellFactory extends TableCell<Destination, Void> {
 		copy.setPrefWidth(70);
 		progressBar.setPrefHeight(25);
 		
-		System.err.println("h="+copy.getHeight());
-//		System.err.println("minh="+copy.getMinHeight());
-//		System.err.println("maxh="+copy.getMaxHeight());
-		
 		stackPane = new StackPane(copy);
 		setGraphic(stackPane);
 		
 		setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
-
-		//		System.out.println("getTableRow() = " + getTableRow());
-		//		if (getTableRow() != null) {
-		//			Destination destination = getTableRow().getItem();
-		//			System.out.println(destination);
-		//			service = new CopyTestService(this, photos, destination, "");
-		//		}
 
 		copy.setOnAction(e -> {
 			System.out.println("copier vers " + getTableRow().getItem().getName());
@@ -136,13 +125,12 @@ public class DestinationActionCellFactory extends TableCell<Destination, Void> {
 	protected void updateItem(Void arg0, boolean empty) {
 		super.updateItem(arg0, empty);
 
-		System.out.println("updateItem " + empty);
 		if (empty) {
 			setGraphic(null);
 		} else {
+			setGraphic(stackPane);
 			if (getTableRow() != null) {
 				Destination destination = getTableRow().getItem();
-				System.out.println(destination);
 				service = new CopyService(this, photos, destination, "");
 			}
 		}
@@ -152,12 +140,6 @@ public class DestinationActionCellFactory extends TableCell<Destination, Void> {
 		
 		hBox.getChildren().clear();
 		hBox.getChildren().addAll(nodes);
-		
-//		Button copy;
-//		private Button cancel;
-//		private TextField textField;
-//		private StackPane stackPane;
-//		private ProgressBar progressBar;
 	}
 	
 	private void fillStack(Node ... nodes) {

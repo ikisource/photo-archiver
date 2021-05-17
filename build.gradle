@@ -33,6 +33,7 @@ javafx {
 
 dependencies {
     
+    compile 'com.fasterxml.jackson.core:jackson-databind:2.8.3'
     compile 'com.drewnoakes:metadata-extractor:2.8.1'
     compile 'log4j:log4j:1.2.17'
     compile 'no.tornado:fxlauncher:1.0.8'

@@ -1,15 +1,16 @@
 package omathe;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.Date;
+import java.util.TimeZone;
+
+import org.junit.Test;
+
 import com.drew.imaging.ImageMetadataReader;
 import com.drew.imaging.ImageProcessingException;
 import com.drew.metadata.Metadata;
 import com.drew.metadata.exif.ExifSubIFDDirectory;
-import java.io.File;
-import java.io.IOException;
-import java.time.ZoneId;
-import java.util.Date;
-import java.util.TimeZone;
-import org.junit.Test;
 
 /**
  *

@@ -24,6 +24,15 @@ public class Destination {
 	private BooleanProperty thumb;
 	private StringProperty status;
 
+	public Destination() {
+		this.name = new SimpleStringProperty();
+		this.path = new SimpleStringProperty();
+		this.raw = new SimpleBooleanProperty();
+		this.jpg = new SimpleBooleanProperty();
+		this.thumb = new SimpleBooleanProperty();
+		this.status = new SimpleStringProperty();
+	}
+
 	public Destination(Boolean enabled, String name, Path path, Boolean raw, Boolean jpg, Boolean thumb) {
 		this.name = new SimpleStringProperty(name);
 		this.path = new SimpleStringProperty(path.toString());

@@ -1,5 +1,6 @@
 package omathe.gui;
 
+import configuration.ConfigurationManager;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
@@ -17,12 +18,30 @@ public class Main extends Application {
 	}
 
 	@Override
+	public void init() throws Exception {
+
+		System.out.println("Initialisation de l'application");
+
+		ConfigurationManager.check();
+	}
+	
+	@Override
 	public void start(final Stage stage) throws Exception {
 
 		final BorderPane root = FXMLLoader.load(getClass().getResource("/main.fxml"));
 
 		stage.setTitle("Photo-archiver");
 		stage.setScene(new Scene(root));
+		
+		stage.setOnCloseRequest(e -> {
+			closeApplication();
+		});
+		
 		stage.show();
+	}
+	
+	private void closeApplication() {
+
+		ConfigurationManager.saveConfiguration();
 	}
 }
