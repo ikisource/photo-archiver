@@ -1,47 +1,68 @@
 package service;
 
-import java.nio.file.Files;
+import java.io.File;
 import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Stream;
 
 import org.apache.log4j.Logger;
 
 import javafx.concurrent.Service;
 import javafx.concurrent.Task;
-import model.Destination;
+import model.DrewPhotoMetadataExtractor;
 import model.Photo;
+import model.PhotoMetadata;
+import model.PhotoMetadataExtractor;
 
-public class CopyService extends Service<Long> {
+public class AnalyseService extends Service<List<Photo>> {
 
-	private static Logger logger = Logger.getLogger(CopyService.class);
-	private final static int WIDTH = 1080;
-	private final static int HEIGHT = 720;
-	private List<Photo> photos;
-	private Destination destination;
-	private String author;
+	private static Logger logger = Logger.getLogger(AnalyseService.class);
+	private File directory;
+	private Stream<Path> files;
+	private boolean includeSubDirectories;
+	private List<String> extensions;
+	private PhotoMetadataExtractor metadataExtractor;
 
-	public CopyService() {
+	public AnalyseService() {
 		super();
+		this.metadataExtractor = new DrewPhotoMetadataExtractor();;
 	}
-
-	public CopyService(List<Photo> photos, Destination destination, String author) {
-		super();
-		this.photos = photos;
-		this.destination = destination;
-		this.author = "";
+	
+	public void setFiles(Stream<Path> files) {
+		this.files = files;
 	}
 
 	@Override
-	protected Task<Long> createTask() {
+	protected Task<List<Photo>> createTask() {
 
-		return new Task<Long>() {
+		return new Task<List<Photo>>() {
 
 			@Override
-			protected Long call() {
+			protected List<Photo> call() {
+				
+				List<Photo> photos = new ArrayList<>();
+				List<Path> invalidPhotos = new ArrayList<>();
+				try {
+					files.forEach(path -> {
+								PhotoMetadata metadata = metadataExtractor.extract(path);
+								if (metadata.getValid()) {
+									Photo photo = new Photo(true, path.getFileName().toString(), path, metadata);
+									photo.formatName();
+									photos.add(photo);
+								} else {
+									invalidPhotos.add(path);
+								}
+							});
+					//Logger.getLogger(MainController.class.getName()).log(Level.SEVERE, null, ex);
+				} finally {
+					if (files != null) {
+						files.close();
+						//displayPhotoCounter(invalidPhotos);
+					}
+				}
 
-				long count = 0;
+				/*long count = 0;
 				int rawCount = 0;
 				int jpgCount = 0;
 				int thumbCount = 0;
@@ -112,8 +133,8 @@ public class CopyService extends Service<Long> {
 						destination.updateStatus(rawCount, jpgCount, thumbCount, rawTotal, jpgTotal);
 					}
 				}
-				System.out.println((count) + " photos copied");
-				return count;
+				System.out.println((count) + " photos copied");*/
+				return photos;
 			}
 		};
 	}

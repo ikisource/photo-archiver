@@ -11,7 +11,6 @@ import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.ProgressBar;
-import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.TableCell;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
@@ -26,10 +25,8 @@ public class DestinationActionCellFactory extends TableCell<Destination, Void> {
 	private HBox hBox;
 	private Button copy;
 	private Button cancel;
-//	private TextField textField;
 	private StackPane stackPane;
 	private ProgressBar progressBar;
-	private ProgressIndicator progressIndicator;
 	CopyService service;
 
 	public DestinationActionCellFactory(ObservableList<Photo> photos) {
@@ -55,7 +52,6 @@ public class DestinationActionCellFactory extends TableCell<Destination, Void> {
 		cancel = new Button("Annuler");
 		//cancel.setVisible(false);
 		progressBar = new ProgressBar(0);
-		progressIndicator = new ProgressIndicator(0);
 //		progressBar.setProgress(0);
 //        progressIndicator.setProgress(0);
 		hBox = new HBox(copy);
@@ -84,7 +80,6 @@ public class DestinationActionCellFactory extends TableCell<Destination, Void> {
 			//service.prepare(photos.stream().filter(photo -> photo.getExtension().equalsIgnoreCase("jpg")), destination, "author");
 			service.start();
 			progressBar.progressProperty().bind(service.progressProperty());
-			progressIndicator.progressProperty().bind(service.progressProperty());
 			//cancel.setDisable(true);
 			
 			service.setOnRunning(event -> {
@@ -131,15 +126,9 @@ public class DestinationActionCellFactory extends TableCell<Destination, Void> {
 			setGraphic(stackPane);
 			if (getTableRow() != null) {
 				Destination destination = getTableRow().getItem();
-				service = new CopyService(this, photos, destination, "");
+				service = new CopyService(photos, destination, "");
 			}
 		}
-	}
-	
-	private void fillHBox(Node ... nodes) {
-		
-		hBox.getChildren().clear();
-		hBox.getChildren().addAll(nodes);
 	}
 	
 	private void fillStack(Node ... nodes) {

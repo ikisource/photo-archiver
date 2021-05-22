@@ -4,6 +4,7 @@
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.CheckBox?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ProgressBar?>
 <?import javafx.scene.control.SplitPane?>
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
@@ -13,13 +14,14 @@
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 
 <BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minWidth="-Infinity" xmlns="http://javafx.com/javafx/16" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controller.MainController">
 	<center>
 		<SplitPane dividerPositions="0.45" BorderPane.alignment="CENTER">
 			<items>
-				<AnchorPane fx:id="leftPane" prefHeight="898.0" prefWidth="657.0">
+				<AnchorPane prefHeight="898.0" prefWidth="657.0">
 					<children>
 						<VBox prefHeight="898.0" prefWidth="796.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
 							<children>
@@ -53,7 +55,13 @@
 												</HBox>
 												<HBox alignment="CENTER_LEFT" spacing="5.0">
 													<children>
-														<Button mnemonicParsing="false" onAction="#analyse" text="Analyser" />
+                                          <StackPane fx:id="analyseStackPane">
+                                             <children>
+                                                <Button fx:id="cancelAnalyse" mnemonicParsing="false" text="Annuler" />
+                                                <ProgressBar fx:id="analyseProgress" prefHeight="25.0" prefWidth="70.0" progress="0.0" />
+      														<Button fx:id="analyseButton" mnemonicParsing="false" onAction="#analyse" text="Analyser" />
+                                             </children>
+                                          </StackPane>
 														<Label fx:id="photoCounter" />
 													</children>
 													<VBox.margin>
@@ -205,11 +213,6 @@
 										<Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
 									</VBox.margin>
 								</HBox>
-								<VBox fx:id="copyBox">
-									<VBox.margin>
-										<Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
-									</VBox.margin>
-								</VBox>
 							</children>
 							<padding>
 								<Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />

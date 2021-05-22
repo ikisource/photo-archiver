@@ -6,12 +6,9 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -27,16 +24,18 @@ import com.drew.metadata.exif.ExifSubIFDDirectory;
 
 import commons.AlertBuilder;
 import configuration.ConfigurationManager;
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.concurrent.Service;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.ProgressBar;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
@@ -45,8 +44,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.cell.CheckBoxTableCell;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.StackPane;
 import javafx.stage.DirectoryChooser;
 import javafx.util.Callback;
 import model.Destination;
@@ -54,27 +52,47 @@ import model.DrewPhotoMetadataExtractor;
 import model.Photo;
 import model.PhotoMetadata;
 import model.PhotoMetadataExtractor;
-import service.CopyRawService;
+import service.AnalyseService;
 
 /**
  *
  * @author olivier MATHE
  */
 public class MainController implements Initializable {
-	
-	private ObservableList<Destination> destinationsData = null;
-	
+
+	private ObservableList<Destination> destinationsData;
+	private PhotoMetadataExtractor metadataExtractor;
+	private final ObservableList<Photo> data = FXCollections.observableArrayList();
+	private AnalyseService analyseService;
+
+	// source
+
+	@FXML
+	private TextField filters;
+
+	@FXML
+	private CheckBox includeSubDirectories;
+
 	@FXML
 	private TextField sourceDirectory;
 
 	@FXML
+	private StackPane analyseStackPane;
+
+	@FXML
+	private Button analyseButton;
+
+	@FXML
+	private Button cancelAnalyse;
+
+	@FXML
+	private ProgressBar analyseProgress;
+
+	@FXML
+	private Label photoCounter;
+
+	@FXML
 	private TableView<Photo> photos;
-
-	@FXML
-	private TableView<Destination> destinations;
-
-	@FXML
-	private AnchorPane leftPane;
 
 	@FXML
 	private TableColumn<Photo, Boolean> photoEnabledColumn;
@@ -85,11 +103,19 @@ public class MainController implements Initializable {
 	@FXML
 	private TableColumn<Photo, String> photoDateColumn;
 
-	//	@FXML
-	//	private TableColumn<Destination, Boolean> destinationEnabledColumn;
+	// destinations
+
+	@FXML
+	private TableView<Destination> destinations;
+
+	@FXML
+	private TableColumn<Destination, Void> destinationActionColumn;
 
 	@FXML
 	private TableColumn<Destination, String> destinationNameColumn;
+
+	@FXML
+	private TableColumn<Destination, String> destinationPathColumn;
 
 	@FXML
 	private TableColumn<Destination, Boolean> destinationRawColumn;
@@ -101,68 +127,44 @@ public class MainController implements Initializable {
 	private TableColumn<Destination, Boolean> destinationThumbColumn;
 
 	@FXML
-	private TableColumn<Destination, String> destinationPathColumn;
-
-	@FXML
-	private TableColumn<Destination, Void> destinationActionColumn;
-
-	@FXML
 	private TableColumn<Destination, String> destinationStatusColumn;
-
-	@FXML
-	private VBox copyBox;
-
-	@FXML
-	private Button copy;
-
-	@FXML
-	private Button cancelCopy;
-
-	@FXML
-	private Label photoCounter;
-
-	@FXML
-	private CheckBox includeSubDirectories;
-
-	@FXML
-	private TextField filters;
-
-	//    private CopyThumbService copyThumbService;
-	//    private CopyJpgService copyJpgService;
-	//    private CopyRawService copyRawService;
-	private PhotoMetadataExtractor metadataExtractor;
-
-	private final ObservableList<Photo> data = FXCollections.observableArrayList();
-
-	Map<String, Service> services;
-	//CopyJpgService copyJpgService;
-	//CopyThumbService copyThumbService;
-	CopyRawService copyRawService;
-
-	public Map<String, Service> getServices() {
-		return services;
-	}
-
-	public VBox getCopyBox() {
-		return copyBox;
-	}
 
 	@Override
 	public void initialize(URL location, final ResourceBundle resources) {
+
+		analyseService = new AnalyseService();
+		analyseProgress.progressProperty().bind(analyseService.progressProperty());
+		fillStack(analyseButton);
+		
+		analyseService.setOnSucceeded(event -> {
+			data.addAll(analyseService.getValue());
+			fillStack(analyseButton);
+			analyseService.reset();
+		});
+		analyseService.setOnRunning(event -> {
+			cancelAnalyse.setOpacity(0.5);
+			fillStack(analyseProgress, cancelAnalyse);
+		});
+		analyseService.setOnCancelled(event -> {
+			fillStack(analyseButton);
+			analyseService.reset();
+		});
 		
 		destinationsData = ConfigurationManager.getConfiguration().getDestinations();
-		
-		//sourceDirectory.setText("/home/olivier/Téléchargements/test");
 		destinations.setItems(destinationsData);
-		//destinationsData.add(new Destination(Boolean.TRUE, "USB Key", new File("/home/olivier/Téléchargements/olivier").toPath(), Boolean.TRUE, Boolean.TRUE, Boolean.TRUE));
-		//destinations.setPlaceholder(new Label("Pas de destinations"));
-		
+		destinations.setPlaceholder(new Label("Pas de destinations"));
+
 		// bindings
 		sourceDirectory.textProperty().bindBidirectional(ConfigurationManager.getConfiguration().sourceProperty());
 		filters.textProperty().bindBidirectional(ConfigurationManager.getConfiguration().filterProperty());
 		includeSubDirectories.selectedProperty().bindBidirectional(ConfigurationManager.getConfiguration().includeSubDirectoriesProperty());
 
+		Platform.runLater(() -> {
+			analyseButton.requestFocus();
+		});
+
 		// photos
+		photos.setPlaceholder(new Label("Pas de photos"));
 		photos.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
 		photos.setItems(data);
 
@@ -195,12 +197,6 @@ public class MainController implements Initializable {
 
 		// bindings
 		this.metadataExtractor = new DrewPhotoMetadataExtractor();
-
-		services = new HashMap<String, Service>();
-
-		//copyJpgService = new CopyJpgService();
-		//copyThumbService = new CopyThumbService();
-		copyRawService = new CopyRawService();
 	}
 
 	//    @FXML
@@ -287,93 +283,6 @@ public class MainController implements Initializable {
 		}
 	}
 
-	/*@FXML
-	protected void copy(ActionEvent event) throws IOException {
-	
-		//copies
-		destinationsData.stream().forEach(destination -> {
-			try {
-				destination.create();
-	
-				if (destination.getJpg()) {
-					if (services.get(destination.getPath() + "jpg") == null) {
-						FXMLLoader fxmlLoader = new FXMLLoader();
-						HBox hBox = fxmlLoader.load(this.getClass().getResource("/copyBox.fxml").openStream());
-						CopyBoxController copyBoxController = fxmlLoader.getController();
-						copyBoxController.setCopyName("JPG: " + destination.getName());
-	
-						copyBox.getChildren().add(hBox);
-	
-						CopyJpgService jpgService = new CopyJpgService();
-						jpgService.prepare(data.stream().filter(photo -> photo.getExtension().equalsIgnoreCase("jpg")), destination, "author");
-						copyBoxController.setService(this, jpgService, destination.getPath() + "jpg", hBox);
-						services.put(destination.getPath() + "jpg", jpgService);
-						jpgService.start();
-	
-					}
-				}
-				if (destination.getThumb()) {
-					if (services.get(destination.getPath() + "thumb") == null) {
-						FXMLLoader fxmlLoader = new FXMLLoader();
-						HBox hBox = fxmlLoader.load(this.getClass().getResource("/copyBox.fxml").openStream());
-						CopyBoxController copyBoxController = fxmlLoader.getController();
-						copyBoxController.setCopyName("THUMB: " + destination.getName());
-						copyBox.getChildren().add(hBox);
-	
-						CopyThumbService thumbService = new CopyThumbService();
-						thumbService.prepare(data.stream().filter(photo -> photo.getExtension().equalsIgnoreCase("jpg")), destination, "author");
-						copyBoxController.setService(this, thumbService, destination.getPath() + "thumb", hBox);
-						services.put(destination.getPath() + "thumb", thumbService);
-						thumbService.start();
-					}
-				}
-				if (destination.getRaw()) {
-					if (services.get(destination.getPath() + "raw") == null) {
-						FXMLLoader fxmlLoader = new FXMLLoader();
-						HBox hBox = fxmlLoader.load(this.getClass().getResource("/copyBox.fxml").openStream());
-						CopyBoxController copyBoxController = fxmlLoader.getController();
-						copyBoxController.setCopyName("RAW: " + destination.getName());
-						copyBox.getChildren().add(hBox);
-	
-						CopyRawService rawService = new CopyRawService();
-						rawService.prepare(data.stream().filter(photo -> photo.getExtension().equalsIgnoreCase("cr2")), destination, "author");
-						copyBoxController.setService(this, rawService, destination.getPath() + "raw", hBox);
-						services.put(destination.getPath() + "raw", rawService);
-						rawService.start();
-					}
-				}
-	
-			} catch (IOException ex) {
-				Logger.getLogger(MainController.class.getName()).log(Level.SEVERE, null, ex);
-			}
-		});
-	}*/
-
-	@FXML
-	protected void cancelCopy(ActionEvent event) throws IOException {
-		System.out.println("cancelCopy");
-		//copyJpgService.cancel();
-		copyRawService.cancel();
-		//opyThumbService.cancel();
-
-		//System.out.println("state jpg: " + copyJpgService.getState());
-		System.out.println("state raw: " + copyRawService.getState());
-		//System.out.println("state thumb: " + copyThumbService.getState());
-
-		copyBox.getChildren().clear();
-
-		/*for (Node node: copyBox.getChildren()) {
-		    System.out.println("node id = " + node.getId());
-		    System.out.println("node = " + node);
-		    if (node.getId() != null && !node.getId().equals("copy") && !node.getId().equals("cancelCopy")) {
-		        copyBox.getChildren().remove(node);
-		        System.out.println("node id = " + node.getId() + " removed");
-		    }
-		}*/
-		//copyBox.getChildren().clear();
-		//copyBox.getChildren().addAll(copy, cancelCopy);
-	}
-
 	@FXML
 	protected void selectAllPhotos(ActionEvent event) {
 
@@ -397,17 +306,12 @@ public class MainController implements Initializable {
 		}
 	}
 
+	@SuppressWarnings("resource")
 	@FXML
 	protected void analyse(ActionEvent event) {
 
-		getFilters();
-
 		File directory = new File(sourceDirectory.getText());
-
-		data.clear();
-		List<Path> invalidPhotos = new ArrayList<>();
 		Stream<Path> files = null;
-
 		try {
 			if (includeSubDirectories.isSelected()) {
 				files = Files.walk(Paths.get(directory.toURI()))
@@ -417,27 +321,21 @@ public class MainController implements Initializable {
 			}
 			List<String> extensions = getFilters();
 
-			files.filter(p -> p.toFile().isFile())
+			files = files.filter(p -> p.toFile().isFile())
 					.filter(p -> p.toString().contains("."))
-					.filter(p -> extensions.contains(p.toString().toLowerCase().substring(p.toString().lastIndexOf(".") + 1).toLowerCase())) // filter on extension
-					.forEach(path -> {
-						PhotoMetadata metadata = metadataExtractor.extract(path);
-						if (metadata.getValid()) {
-							Photo photo = new Photo(true, path.getFileName().toString(), path, metadata);
-							photo.formatName();
-							data.add(photo);
-						} else {
-							invalidPhotos.add(path);
-						}
-					});
+					.filter(p -> extensions.contains(p.toString().toLowerCase().substring(p.toString().lastIndexOf(".") + 1).toLowerCase())); // filter on extension
+			data.clear();
+			analyseService.setFiles(files);
+			analyseService.start();
+
 		} catch (IOException ex) {
 			Logger.getLogger(MainController.class.getName()).log(Level.SEVERE, null, ex);
-		} finally {
+		} /*finally {
 			if (files != null) {
 				files.close();
 				displayPhotoCounter(invalidPhotos);
 			}
-		}
+			}*/
 	}
 
 	private List<String> getFilters() {
@@ -489,5 +387,11 @@ public class MainController implements Initializable {
 			}
 		}
 		photoCounter.setText(text);
+	}
+
+	private void fillStack(Node... nodes) {
+
+		analyseStackPane.getChildren().clear();
+		analyseStackPane.getChildren().addAll(nodes);
 	}
 }
