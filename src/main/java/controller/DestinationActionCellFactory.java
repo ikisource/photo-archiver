@@ -33,76 +33,39 @@ public class DestinationActionCellFactory extends TableCell<Destination, Void> {
 		super();
 
 		this.photos = photos;
-		
+
 		copy = new Button("Copier");
-//		copy.disableProperty().bind(new SimpleBooleanProperty(photos.size() == 0));
-		BooleanBinding bb = Bindings.createBooleanBinding(() ->
-				photos.size( )== 0, photos);
+		BooleanBinding bb = Bindings.createBooleanBinding(() -> photos.size() == 0, photos);
 		copy.disableProperty().bind(bb);
-		
-//		allSelected = Bindings.createBooleanBinding(() -> 
-//        // compute value of binding:
-//        Stream.of(packages).allMatch(CheckBox::isSelected), 
-//        // array of thing to observe to recompute binding - this gives the array
-//        // of all the check boxes' selectedProperty()s.
-//        Stream.of(packages).map(CheckBox::selectedProperty).toArray(Observable[]::new));
-		
-		
-		
 		cancel = new Button("Annuler");
-		//cancel.setVisible(false);
 		progressBar = new ProgressBar(0);
-//		progressBar.setProgress(0);
-//        progressIndicator.setProgress(0);
 		hBox = new HBox(copy);
 		hBox.setAlignment(Pos.CENTER_LEFT);
 		hBox.setSpacing(5);
 		
-		/*progressBar.prefHeightProperty().bind(copy.prefHeightProperty());
-		progressBar.minHeightProperty().bind(copy.minHeightProperty());
-		progressBar.maxHeightProperty().bind(copy.maxHeightProperty());
-		
-		progressBar.prefWidthProperty().bind(copy.prefWidthProperty());
-		progressBar.minWidthProperty().bind(copy.minWidthProperty());
-		progressBar.maxWidthProperty().bind(copy.maxWidthProperty());*/
 		progressBar.setPrefWidth(70);
 		copy.setPrefWidth(70);
 		progressBar.setPrefHeight(25);
-		
+
 		stackPane = new StackPane(copy);
 		setGraphic(stackPane);
-		
+
 		setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
 
 		copy.setOnAction(e -> {
 			System.out.println("copier vers " + getTableRow().getItem().getName());
-
-			//service.prepare(photos.stream().filter(photo -> photo.getExtension().equalsIgnoreCase("jpg")), destination, "author");
 			service.start();
 			progressBar.progressProperty().bind(service.progressProperty());
-			//cancel.setDisable(true);
-			
+
 			service.setOnRunning(event -> {
-//				copy.setDisable(true);
-//				copy.setVisible(false);
-//				cancel.setDisable(false);
-				//fillHBox(cancel, progressBar, progressIndicator);
 				cancel.setOpacity(0.5);
 				fillStack(progressBar, cancel);
 			});
 			service.setOnSucceeded(event -> {
-//				copy.setDisable(false);
-//				cancel.setDisable(true);
-//				cancel.setVisible(false);
-				//fillHBox(copy);
 				fillStack(copy);
 				service.reset();
 			});
 			service.setOnCancelled(event -> {
-//				copy.setDisable(false);
-//				cancel.setDisable(true);
-//				cancel.setVisible(false);
-//				fillHBox(copy);
 				fillStack(copy);
 				service.reset();
 				System.out.println("Annuler copie vers " + getTableRow().getItem().getName());
@@ -130,9 +93,9 @@ public class DestinationActionCellFactory extends TableCell<Destination, Void> {
 			}
 		}
 	}
-	
-	private void fillStack(Node ... nodes) {
-		
+
+	private void fillStack(Node... nodes) {
+
 		stackPane.getChildren().clear();
 		stackPane.getChildren().addAll(nodes);
 	}

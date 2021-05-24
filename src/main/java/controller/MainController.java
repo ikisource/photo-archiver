@@ -132,13 +132,27 @@ public class MainController implements Initializable {
 	@Override
 	public void initialize(URL location, final ResourceBundle resources) {
 
+		// source directory
+		sourceDirectory.textProperty().addListener((observable, oldValue, newValue) -> {
+			File directory = new File(sourceDirectory.getText());
+			if (!directory.exists() || directory.isFile()) {
+				sourceDirectory.setStyle("-fx-text-fill: red;");
+				analyseButton.setDisable(true);
+			} else {
+				sourceDirectory.setStyle("-fx-text-fill: black;");
+				analyseButton.setDisable(false);
+			}
+		});
+
 		analyseService = new AnalyseService();
 		analyseProgress.progressProperty().bind(analyseService.progressProperty());
+		analyseProgress.setStyle("-fx-accent: green;");
 		fillStack(analyseButton);
-		
+
 		analyseService.setOnSucceeded(event -> {
 			data.addAll(analyseService.getValue());
 			fillStack(analyseButton);
+			photoCounter.textProperty().unbind();
 			analyseService.reset();
 		});
 		analyseService.setOnRunning(event -> {
@@ -147,6 +161,7 @@ public class MainController implements Initializable {
 		});
 		analyseService.setOnCancelled(event -> {
 			fillStack(analyseButton);
+			photoCounter.textProperty().unbind();
 			analyseService.reset();
 		});
 		
@@ -306,36 +321,28 @@ public class MainController implements Initializable {
 		}
 	}
 
-	@SuppressWarnings("resource")
 	@FXML
+	@SuppressWarnings("resource")
 	protected void analyse(ActionEvent event) {
 
-		File directory = new File(sourceDirectory.getText());
-		Stream<Path> files = null;
+		Stream<Path> paths = null;
 		try {
-			if (includeSubDirectories.isSelected()) {
-				files = Files.walk(Paths.get(directory.toURI()))
-						.filter(Files::isRegularFile);
-			} else {
-				files = Files.list(Paths.get(directory.toURI()));
-			}
+			File directory = new File(sourceDirectory.getText());
+			Path directoryPath = Paths.get(directory.toURI());
+			paths = includeSubDirectories.isSelected() ? Files.walk(directoryPath)
+					.filter(Files::isRegularFile) : Files.list(directoryPath);
 			List<String> extensions = getFilters();
 
-			files = files.filter(p -> p.toFile().isFile())
+			paths = paths.filter(p -> p.toFile().isFile())
 					.filter(p -> p.toString().contains("."))
 					.filter(p -> extensions.contains(p.toString().toLowerCase().substring(p.toString().lastIndexOf(".") + 1).toLowerCase())); // filter on extension
 			data.clear();
-			analyseService.setFiles(files);
+			analyseService.setPaths(paths.collect(Collectors.toList()));
 			analyseService.start();
-
+			photoCounter.textProperty().bind(analyseService.messageProperty());
 		} catch (IOException ex) {
 			Logger.getLogger(MainController.class.getName()).log(Level.SEVERE, null, ex);
-		} /*finally {
-			if (files != null) {
-				files.close();
-				displayPhotoCounter(invalidPhotos);
-			}
-			}*/
+		}
 	}
 
 	private List<String> getFilters() {

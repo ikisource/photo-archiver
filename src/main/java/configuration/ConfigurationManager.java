@@ -16,6 +16,8 @@ public class ConfigurationManager {
 	public static final String APPLICATION_TITLE = "Photo archiver";
 	public static final String DESTINATION_NAME = "dest";
 	public static final String PHOTO_FILTERS = "CR2, JPG";
+	public static final String ANALYSE_INVALID = "INVALIDE";
+	public static final String ANALYSE_NO_DATE = "SANS DATE";
 	public static final String MAIN_FXML = "/main.fxml";
 
 	private static String getApplicationHome() {

@@ -36,7 +36,7 @@ public class PhotoDateCellFactory extends TableCell<Photo, String> {
 	@Override
 	public void commitEdit(String value) {
 		super.commitEdit(value);
-		
+
 		setContentDisplay(ContentDisplay.TEXT_ONLY);
 	}
 
@@ -44,10 +44,19 @@ public class PhotoDateCellFactory extends TableCell<Photo, String> {
 	public void updateItem(String item, boolean empty) {
 		super.updateItem(item, empty);
 
+		if (getTableRow().getItem() != null && !empty) {
+			if (getTableRow().getItem().isValid()) {
+				getTableRow().setStyle("-fx-background-color: gray;");
+			}
+			else {
+				getTableRow().setStyle("-fx-background-color: red;");
+			}
+		}
 		if (empty) {
 			setGraphic(null);
 			setText(null);
 			setStyle(null);
+			getTableRow().setStyle(null);
 		} else if (item == null || item.isEmpty()) {
 			setText(null);
 			setStyle("-fx-background-color: red;");

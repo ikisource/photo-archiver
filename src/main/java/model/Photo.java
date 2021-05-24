@@ -121,6 +121,10 @@ public class Photo {
 		}
 		return directoryName;
 	}
+	
+	public boolean isValid() {
+		return metadata.getValid();
+	}
 
 	@Override
 	public String toString() {
