@@ -28,9 +28,9 @@ public class Main extends Application {
 	@Override
 	public void start(final Stage stage) throws Exception {
 
-		final BorderPane root = FXMLLoader.load(getClass().getResource("/main.fxml"));
+		final BorderPane root = FXMLLoader.load(getClass().getResource(ConfigurationManager.MAIN_FXML));
 
-		stage.setTitle("Photo-archiver");
+		stage.setTitle("Photo archiver");
 		stage.setScene(new Scene(root));
 		
 		stage.setOnCloseRequest(e -> {

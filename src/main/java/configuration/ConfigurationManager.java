@@ -75,6 +75,8 @@ public class ConfigurationManager {
 				e.printStackTrace();
 			}
 		}
+		// do not save the status of destinations
+		configuration.getDestinations().stream().forEach(c -> c.setStatus(""));
 		JsonHelper.tojson(configurationFile, configuration);
 	}
 

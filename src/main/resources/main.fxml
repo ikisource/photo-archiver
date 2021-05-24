@@ -142,7 +142,7 @@
                               <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
                            </VBox.margin>
                         </Label>
-								<TableView fx:id="destinations" editable="true" maxHeight="-Infinity" onMouseClicked="#selectDestination" prefHeight="188.0" prefWidth="728.0" VBox.vgrow="SOMETIMES">
+								<TableView fx:id="destinations" editable="true" maxHeight="-Infinity" prefHeight="188.0" prefWidth="728.0" VBox.vgrow="SOMETIMES">
 									<columns>
 										<TableColumn fx:id="destinationActionColumn" text="Action">
 										</TableColumn>
@@ -177,7 +177,7 @@
 												<PropertyValueFactory property="thumb" />
 											</cellValueFactory>
 										</TableColumn>
-										<TableColumn fx:id="destinationStatusColumn" prefWidth="250.0" text="Statut">
+										<TableColumn fx:id="destinationStatusColumn" editable="false" prefWidth="250.0" text="Statut">
 											<cellFactory>
 												<TextFieldTableCell fx:factory="forTableColumn" />
 											</cellFactory>

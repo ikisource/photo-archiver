@@ -7,7 +7,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
@@ -15,16 +14,8 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import com.drew.imaging.ImageMetadataReader;
-import com.drew.imaging.ImageProcessingException;
-import com.drew.metadata.Directory;
-import com.drew.metadata.Metadata;
-import com.drew.metadata.Tag;
-import com.drew.metadata.exif.ExifSubIFDDirectory;
-
 import commons.AlertBuilder;
 import configuration.ConfigurationManager;
-import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -43,25 +34,19 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.cell.CheckBoxTableCell;
 import javafx.scene.control.cell.PropertyValueFactory;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.StackPane;
 import javafx.stage.DirectoryChooser;
 import javafx.util.Callback;
 import model.Destination;
-import model.DrewPhotoMetadataExtractor;
 import model.Photo;
-import model.PhotoMetadata;
-import model.PhotoMetadataExtractor;
 import service.AnalyseService;
 
 /**
- *
  * @author olivier MATHE
  */
 public class MainController implements Initializable {
 
 	private ObservableList<Destination> destinationsData;
-	private PhotoMetadataExtractor metadataExtractor;
 	private final ObservableList<Photo> data = FXCollections.observableArrayList();
 	private AnalyseService analyseService;
 
@@ -164,7 +149,7 @@ public class MainController implements Initializable {
 			photoCounter.textProperty().unbind();
 			analyseService.reset();
 		});
-		
+
 		destinationsData = ConfigurationManager.getConfiguration().getDestinations();
 		destinations.setItems(destinationsData);
 		destinations.setPlaceholder(new Label("Pas de destinations"));
@@ -173,10 +158,6 @@ public class MainController implements Initializable {
 		sourceDirectory.textProperty().bindBidirectional(ConfigurationManager.getConfiguration().sourceProperty());
 		filters.textProperty().bindBidirectional(ConfigurationManager.getConfiguration().filterProperty());
 		includeSubDirectories.selectedProperty().bindBidirectional(ConfigurationManager.getConfiguration().includeSubDirectoriesProperty());
-
-		Platform.runLater(() -> {
-			analyseButton.requestFocus();
-		});
 
 		// photos
 		photos.setPlaceholder(new Label("Pas de photos"));
@@ -209,65 +190,12 @@ public class MainController implements Initializable {
 			}
 		};
 		destinationActionColumn.setCellFactory(destinationActionCellFactory);
-
-		// bindings
-		this.metadataExtractor = new DrewPhotoMetadataExtractor();
-	}
-
-	//    @FXML
-	//    public void browseDestination(MouseEvent mouseEvent) {
-	//        System.out.println("mouse clicked");
-	//        if (mouseEvent.getButton().equals(MouseButton.PRIMARY)) {
-	//            if (mouseEvent.getClickCount() == 2) {
-	//                //System.out.println("Double clicked");
-	//                DirectoryChooser directoryChooser = new DirectoryChooser();
-	//                directoryChooser.setTitle("Sélection du répertoire de copie");
-	//                File directory = directoryChooser.showDialog(null);
-	//                if (directory != null) {
-	//                    sourceDirectory.setValue(directory.getAbsolutePath());
-	//                }
-	//            }
-	//
-	//        } else {
-	//            System.out.println("simple clicked");
-	//        }
-	//    }
-
-	public void extract(Path path) {
-
-		PhotoMetadata photoMetadata = new PhotoMetadata();
-		try {
-
-			//File file = new File("/media/DATA/dev/photo-archiver/src/test/resources/2015-11-01_16-51-17,082.jpg");
-			Metadata metadata = ImageMetadataReader.readMetadata(path.toFile());
-			ExifSubIFDDirectory directory = metadata.getFirstDirectoryOfType(ExifSubIFDDirectory.class);
-			if (directory != null) {
-				// date
-				Date date = directory.getDate(ExifSubIFDDirectory.TAG_DATETIME_ORIGINAL);
-				if (date != null) {
-					photoMetadata.setDate(date.getTime());
-					System.out.println("date: " + date);
-				}
-				// camera
-			}
-			for (Directory dir : metadata.getDirectories()) {
-				for (Tag tag : dir.getTags()) {
-					System.out.println(tag.toString());
-					//System.out.println(tag.getDirectoryName() + "," + tag.getTagType() + ", " + tag.getTagName() + ", " + tag.getDescription());
-				}
-			}
-
-		} catch (ImageProcessingException | IOException ex) {
-			Logger.getLogger(DrewPhotoMetadataExtractor.class.getName()).log(Level.SEVERE, null, ex);
-		}
 	}
 
 	@FXML
 	protected void addDestination(ActionEvent event) {
 
-		System.out.println("controller.MainController.addDestination()");
 		DirectoryChooser directoryChooser = new DirectoryChooser();
-		//directoryChooser.setInitialDirectory(new File("/media/DATA/copy"));
 		directoryChooser.setTitle("Sélection du répertoire de copie");
 		File directory = directoryChooser.showDialog(null);
 		if (directory != null) {
@@ -286,15 +214,6 @@ public class MainController implements Initializable {
 			if (response.equals(ButtonType.OK)) {
 				destinationsData.remove(destination);
 			}
-		}
-	}
-
-	@FXML
-	protected void selectDestination(MouseEvent event) {
-
-		Destination destination = destinations.getSelectionModel().getSelectedItem();
-		if (destination != null) {
-			System.out.println(destination);
 		}
 	}
 
@@ -363,37 +282,7 @@ public class MainController implements Initializable {
 	@FXML
 	void clearPhotos(ActionEvent event) {
 		data.clear();
-		displayPhotoCounter(null);
-	}
-
-	private void displayPhotoCounter(List<Path> invalidPhotos) {
-
-		String text = "";
-		if (data.isEmpty()) {
-			photoCounter.setText("");
-		} else if (data.size() == 1) {
-			text = data.size() + " photo analysée";
-		} else {
-			text = data.size() + " photos analysées";
-		}
-		// photos without date
-		long noDateCounter = data.stream().filter(photo -> photo.getDate() == null).count();
-		if (noDateCounter > 0) {
-			if (noDateCounter == 1) {
-				text += ", " + noDateCounter + " photo sans date";
-			} else {
-				text += ", " + noDateCounter + " photos sans date";
-			}
-		}
-		// invalid photos
-		if (invalidPhotos != null && !invalidPhotos.isEmpty()) {
-			if (invalidPhotos.size() == 1) {
-				text += ", " + invalidPhotos.size() + " photo invalide";
-			} else {
-				text += ", " + invalidPhotos.size() + " photos invalides";
-			}
-		}
-		photoCounter.setText(text);
+		photoCounter.setText("");
 	}
 
 	private void fillStack(Node... nodes) {
