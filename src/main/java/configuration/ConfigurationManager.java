@@ -12,6 +12,8 @@ public class ConfigurationManager {
 	private static Configuration configuration;
 
 	private static final String APPLICATION_DIRECTORY = ".photoArchiver";
+	
+	public static final String APPLICATION_ICON = "/app.png";
 	public static final String CONFIGURATION_FILE_NAME = "configuration.json";
 	public static final String APPLICATION_TITLE = "Photo archiver";
 	public static final String DESTINATION_NAME = "dest";

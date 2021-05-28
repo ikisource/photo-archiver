@@ -4,6 +4,7 @@ import configuration.ConfigurationManager;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
+import javafx.scene.image.Image;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
 
@@ -25,13 +26,14 @@ public class Main extends Application {
 		ConfigurationManager.check();
 	}
 	
+	@SuppressWarnings("resource")
 	@Override
 	public void start(final Stage stage) throws Exception {
 
 		final BorderPane root = FXMLLoader.load(getClass().getResource(ConfigurationManager.MAIN_FXML));
-
 		stage.setTitle("Photo archiver");
 		stage.setScene(new Scene(root));
+		stage.getIcons().add(new Image(Main.class.getResource(ConfigurationManager.APPLICATION_ICON).toString()));
 		
 		stage.setOnCloseRequest(e -> {
 			closeApplication();

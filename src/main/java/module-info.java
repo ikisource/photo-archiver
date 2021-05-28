@@ -1,12 +1,12 @@
-module fr.omathe.photoarchiver {
+module omathe.gui {
 
 	requires javafx.fxml;
 	requires javafx.web;
-	
-	// automatic modules
 	requires javafx.base;
 	requires transitive javafx.graphics;
 	requires javafx.controls;
+	
+	// automatic modules
 	requires org.controlsfx.controls;
 	requires jackson.databind;
 	requires metadata.extractor;
