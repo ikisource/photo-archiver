@@ -8,6 +8,7 @@ package model;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Date;
+import java.util.TimeZone;
 
 import com.drew.imaging.ImageMetadataReader;
 import com.drew.imaging.ImageProcessingException;
@@ -30,7 +31,7 @@ public class DrewPhotoMetadataExtractor implements PhotoMetadataExtractor {
             ExifSubIFDDirectory directory = metadata.getFirstDirectoryOfType(ExifSubIFDDirectory.class);
             if (directory != null) {
                 // date
-                Date date = directory.getDate(ExifSubIFDDirectory.TAG_DATETIME_ORIGINAL);
+                Date date = directory.getDate(ExifSubIFDDirectory.TAG_DATETIME_ORIGINAL, TimeZone.getTimeZone("Europe/Paris"));
                 if (date != null) {
                     photoMetadata.setDate(date.getTime());
                 }
