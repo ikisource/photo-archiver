@@ -4,3 +4,4 @@ org.*
 .project
 .classpath
 .gradle
+*.log
