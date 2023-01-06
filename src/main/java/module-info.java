@@ -8,13 +8,13 @@ module omathe.gui {
 	
 	// automatic modules
 	requires org.controlsfx.controls;
-	requires jackson.databind;
+	requires com.fasterxml.jackson.databind;
 	requires metadata.extractor;
 	requires java.logging;
 	requires log4j;
 	requires java.desktop;
 
 	opens controller to javafx.fxml;
-	opens model to javafx.base, jackson.databind;
+	opens model to javafx.base, com.fasterxml.jackson.databind;
 	exports omathe.gui to javafx.graphics;
 }

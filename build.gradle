@@ -1,69 +1,54 @@
-buildscript {
+/*buildscript {
     repositories {
     	mavenCentral()
-    	jcenter()
     	maven {
       		url 'https://sandec.bintray.com/repo'
     	}
     }
     dependencies {
-		classpath 'org.openjfx:javafx-plugin:0.0.8'
+		classpath 'org.openjfx:javafx-plugin:0.0.13'
     }
-}
+}*/
 
 plugins {
+    id 'java'
 	id 'application' // uses also plugin 'java'
-    id 'eclipse'
-    id 'org.openjfx.javafxplugin' version '0.0.8'
-    id "org.beryx.jlink" version "2.24.0"
+    id 'org.openjfx.javafxplugin' version '0.0.13'
+    id "org.beryx.jlink" version "2.25.0"
 }
 
 group 'fr.omathe.photoarchiver'
-project.version '1.0'
-def moduleName = 'omathe.gui'
-def mainClass = moduleName + '.Main'
-mainClassName = mainClass
-
+version '1.0'
+mainClassName = 'omathe.gui.Main'
 
 repositories {
     mavenCentral()
-	jcenter()
+}
+
+application {
+    mainModule = 'omathe.gui'
+    mainClass = 'omathe.gui.Main'
+}
+
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
 }
 
 javafx {
-	version = '17'
+	version = '17.0.2'
     modules = [ 'javafx.fxml', 'javafx.web']
 }
 
 dependencies {
-    
-    implementation 'com.fasterxml.jackson.core:jackson-databind:2.8.3'
-    implementation 'com.drewnoakes:metadata-extractor:2.8.1'
+
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.14.1'
+    implementation 'com.drewnoakes:metadata-extractor:2.18.0'
     implementation 'log4j:log4j:1.2.17'
-    implementation 'no.tornado:fxlauncher:1.0.8'
-	implementation 'org.controlsfx:controlsfx:11.0.2'
-    testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-engine', version: '5.7.0'
-    testRuntimeOnly('org.junit.jupiter:junit-jupiter-engine:5.7.0')
-    testImplementation('org.junit.jupiter:junit-jupiter:5.7.0') {
-		exclude group: 'org.junit.platform' // otherwise bug with junit eclipse launcher
-  	}
+    //implementation 'no.tornado:fxlauncher:1.0.8'
+	implementation 'org.controlsfx:controlsfx:11.1.2'
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.9.0'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.9.0'
 }
-
-eclipse {
-	classpath {
-		downloadSources=true
-		containers 'org.eclipse.jdt.launching.JRE_CONTAINER'
-		file {
-			whenMerged {
-				entries.removeAll { it.kind == 'con' && it.path == 'org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-15/' }
-				entries.findAll { it.properties.kind.equals('lib') }.each {
-                    it.entryAttributes['module'] = 'true'
-                }
-			}
-		}
-	}
-}
-
 test {
     useJUnitPlatform()
 }
@@ -79,6 +64,12 @@ jlink {
     launcher {
         name = project.name
     }
+}
+
+jar {
+	manifest {
+		attributes('Main-Class': 'omathe.gui.Main')
+	}
 }
 
 // launch 'gradlew jpackageImage' to build the image 
