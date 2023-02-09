@@ -8,6 +8,8 @@ import javafx.scene.image.Image;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
 
+import java.net.URL;
+
 /**
  * Main class of the application
  * @author Olivier MATHE
@@ -30,7 +32,11 @@ public class Main extends Application {
 	@Override
 	public void start(final Stage stage) throws Exception {
 
-		final BorderPane root = FXMLLoader.load(getClass().getResource(ConfigurationManager.MAIN_FXML));
+		URL url = getClass().getResource(ConfigurationManager.MAIN_FXML);
+		if (url == null) {
+			throw new IllegalStateException("Le fichier de configuration '" + ConfigurationManager.MAIN_FXML + "' est introuvable.");
+		}
+		final BorderPane root = FXMLLoader.load(url);
 		stage.setTitle("Photo archiver");
 		stage.setScene(new Scene(root));
 		stage.getIcons().add(new Image(Main.class.getResource(ConfigurationManager.APPLICATION_ICON).toString()));

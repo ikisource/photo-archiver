@@ -4,6 +4,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.Comparator;
 import java.util.List;
 
 import org.apache.log4j.Logger;
@@ -31,6 +32,7 @@ public class CopyService extends Service<Long> {
 		this.photos = photos;
 		this.destination = destination;
 		this.author = "";
+		Comparator c;
 	}
 
 	@Override
